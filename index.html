@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -1313,6 +1313,62 @@ textarea:focus-visible, [tabindex]:focus-visible, .option:focus-visible,
   padding: 0; margin: -1px; overflow: hidden;
   clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
+
+/* ============ PART 2: skeleton loader, info-modal, link-button (ditambahkan) ============ */
+.skeleton-row {
+  height: 44px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, var(--border) 25%, var(--bg) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.btn-info-link {
+  background: none;
+  border: none;
+  color: var(--primary-medium);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+.btn-info-link:hover { color: var(--primary); }
+.info-modal {
+  max-width: 480px;
+  max-height: 86vh;
+  overflow-y: auto;
+  text-align: left;
+}
+.info-modal-body {
+  color: var(--text);
+  margin-bottom: 20px;
+  line-height: 1.65;
+  font-size: 14px;
+}
+.info-modal-body ul { padding-left: 20px; margin: 8px 0 14px; }
+.info-modal-body li { margin-bottom: 9px; }
+.info-modal-body p { margin: 0; color: var(--text-muted); }
+@media (max-width: 380px) {
+  .container { padding: 12px 10px; }
+  .card { padding: 14px; }
+  .btn { padding: 9px 12px; font-size: 13px; }
+  .quiz-title { font-size: 15px; }
+  .timer { font-size: 14px; padding: 5px 8px; }
+  .info-modal { padding: 20px; }
+}
+@media (orientation: landscape) and (max-height: 480px) {
+  .quiz-header { margin-bottom: 10px; gap: 8px; }
+  .timer { font-size: 13px; padding: 4px 8px; }
+  .quiz-title { font-size: 14px; }
+  .card { padding: 12px; }
+}
 </style>
 </head>
 <body>
@@ -1363,6 +1419,16 @@ textarea:focus-visible, [tabindex]:focus-visible, .option:focus-visible,
     </div>
   </div>
 </div>
+<div id="infoModal" class="modal-bg hidden" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
+  <div class="modal info-modal">
+    <h2 id="infoModalTitle"></h2>
+    <div id="infoModalBody" class="info-modal-body"></div>
+    <div class="actions">
+      <button id="infoModalClose" class="btn btn-primary">Mengerti</button>
+    </div>
+  </div>
+</div>
+
 
 <script>
   // ============ KONFIGURASI SUPABASE ============
@@ -1776,7 +1842,65 @@ textarea:focus-visible, [tabindex]:focus-visible, .option:focus-visible,
       .map(([id, s]) => ({ id, ...s }));
   }
   
-  function showModal(title, msg, onOk, okLabel) {
+    function showInfoModal(title, bodyHtml, opts) {
+    opts = opts || {};
+    const bg = document.getElementById('infoModal');
+    document.getElementById('infoModalTitle').textContent = title;
+    document.getElementById('infoModalBody').innerHTML = bodyHtml;
+    const closeBtn = document.getElementById('infoModalClose');
+    closeBtn.textContent = opts.closeLabel || 'Mengerti';
+    function close() {
+      bg.classList.add('hidden');
+      if (opts.onClose) opts.onClose();
+    }
+    closeBtn.onclick = close;
+    bg.onclick = (e) => { if (e.target === bg) close(); };
+    bg.classList.remove('hidden');
+    closeBtn.focus();
+  }
+
+  function maybeShowOnboarding() {
+    try {
+      if (window._onboardingShown) return;
+      if (localStorage.getItem('onboarding_v1_seen')) return;
+      window._onboardingShown = true;
+      showInfoModal('&#x1F44B; Selamat Datang di Latihan Psikotes MT Transjakarta!', `
+        <ul>
+          <li>&#x1F3AF; <strong>Pilih kategori tes</strong> sesuai kebutuhanmu &mdash; Verbal, Numerik, Spasial, dan lainnya.</li>
+          <li>&#x23F1; <strong>Tiap soal punya batas waktu.</strong> Kerjakan dengan tenang, tapi tetap perhatikan sisa waktu di pojok layar.</li>
+          <li>&#x23F8; <strong>Bisa berhenti sejenak (jeda)</strong> dan lanjut kapan saja &mdash; progresmu otomatis tersimpan.</li>
+          <li>&#x1F3C6; <strong>Lihat peringkatmu</strong> di papan leaderboard, bandingkan progres dgn pengguna lain.</li>
+          <li>&#x1F4C8; <strong>Skor terbaikmu tersimpan otomatis</strong> dan tetap sinkron walau ganti perangkat.</li>
+        </ul>
+        <p>Semangat berlatih &mdash; siap menghadapi tes yang sesungguhnya! &#x1F4AA;</p>
+      `, { closeLabel: 'Ayo Mulai!', onClose: () => { try { localStorage.setItem('onboarding_v1_seen', '1'); } catch (e) {} } });
+    } catch (e) {}
+  }
+
+  function showSectionInstructions(sectionId) {
+    const section = getSection(sectionId);
+    if (!section) return;
+    let numQ = section.questions ? section.questions.length : null;
+    let durSec = section.duration || null;
+    if ((!numQ || !durSec) && hasBundles(section)) {
+      const ref = QUIZ_DATA[getBundleIds(sectionId)[0]];
+      if (ref) { numQ = numQ || (ref.questions ? ref.questions.length : null); durSec = durSec || ref.duration; }
+    }
+    const numQLabel = numQ || '-';
+    const durLabel = durSec ? Math.round(durSec / 60) : '-';
+    showInfoModal('&#x1F4CB; Petunjuk: ' + escapeHtml(section.title), `
+      <ul>
+        <li>&#x1F4DD; Jumlah soal: <strong>${numQLabel} soal</strong></li>
+        <li>&#x23F1; Waktu pengerjaan: <strong>${durLabel} menit</strong></li>
+        <li>&#x2705; Pilih satu jawaban yang menurutmu paling tepat untuk tiap soal.</li>
+        <li>&#x23F8; Butuh istirahat? Tekan tombol jeda &mdash; progres otomatis tersimpan dan bisa dilanjut nanti.</li>
+        <li>&#x1F4CA; Setelah selesai, kamu langsung lihat skor dan pembahasan jawabanmu.</li>
+      </ul>
+      <p>Kerjakan dengan tenang, baca tiap soal baik-baik. Semoga lancar! &#x1F340;</p>
+    `, { closeLabel: 'Siap, Mulai!' });
+  }
+
+function showModal(title, msg, onOk, okLabel) {
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalMsg').textContent = msg;
     const ok = document.getElementById('modalOk');
@@ -2158,7 +2282,7 @@ textarea:focus-visible, [tabindex]:focus-visible, .option:focus-visible,
             <div class="lb-tabs">
               ${lbTabs.map(t => `<button class="lb-tab ${state.lbTab === t.id ? 'active' : ''}" data-tab="${t.id}">${t.title}</button>`).join('')}
             </div>
-            <div id="lbWidgetContent" class="lb-loading">Memuat leaderboard...</div>
+            <div id="lbWidgetContent" class="lb-loading"><span class="sr-only">Memuat leaderboard...</span><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div></div>
           </div>
         </div>
       </div>
@@ -2223,6 +2347,9 @@ textarea:focus-visible, [tabindex]:focus-visible, .option:focus-visible,
       window._autoResumeChecked = true;
       const ids = Object.keys(pausedSessionsCache);
       setTimeout(() => showPausedOptionsModal(ids[0]), 300);
+    } else if (!window._onboardingChecked) {
+      window._onboardingChecked = true;
+      setTimeout(() => maybeShowOnboarding(), 300);
     }
   }
 
@@ -2305,6 +2432,7 @@ textarea:focus-visible, [tabindex]:focus-visible, .option:focus-visible,
         <div class="section-grid-header">
           <h3>Pilih Paket</h3>
           <span class="hint">Setiap paket ${numQ} soal · ${timeMin} menit</span>
+          <button type="button" class="btn-info-link" onclick="showSectionInstructions('${sectionId}')">&#x2139;&#xFE0F; Cara Mengerjakan</button>
         </div>
         <div class="section-grid">${cardsHtml}</div>
       </div>
@@ -3886,7 +4014,7 @@ textarea:focus-visible, [tabindex]:focus-visible, .option:focus-visible,
           ${tabs.map(t => `<button class="lb-tab ${state.lbTab === t.id ? 'active' : ''}" data-tab="${t.id}">${t.title}</button>`).join('')}
         </div>
         
-        <div id="lbContent" class="lb-loading">Memuat leaderboard...</div>
+        <div id="lbContent" class="lb-loading"><span class="sr-only">Memuat leaderboard...</span><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div></div>
       </div>
     `;
     
