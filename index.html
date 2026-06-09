@@ -3405,6 +3405,130 @@ function showModal(title, msg, onOk, okLabel) {
     } catch (e) {}
   }
 
+  function getSectionStatus(id) {
+    if (QUIZ_DATA[id] && QUIZ_DATA[id].isBundled) return getBundleStatus(id);
+    if (state.completedAt[id]) return 'done';
+    if (pausedSessionsCache[id]) return 'paused';
+    if (state.startedAt[id]) return 'in_progress';
+    if (id === 'ganjil_genap' && state.ganjilGenap && state.ganjilGenap.startedAt) return 'in_progress';
+    // selisih_angka tidak punya status in_progress — selalu mulai fresh
+    // selisih_huruf tidak punya status in_progress — selalu mulai fresh
+    return 'pending';
+  }
+
+  function startSection(id) {
+    if (id === 'ganjil_genap') { startGanjilGenap(); return; }
+    if (id === 'selisih_angka') { startSelisihAngka(); return; }
+    if (id === 'selisih_huruf') { startSelisihHuruf(); return; }
+    if (QUIZ_DATA[id] && QUIZ_DATA[id].isBundled) {
+      state.activeSection = id;
+      state.view = 'bundle_select';
+      saveState();
+      render();
+      return;
+    }
+    state.activeSection = id;
+    state.view = 'quiz';
+    
+    if (!state.startedAt[id]) {
+      state.currentIndex = 0;
+      state.startedAt[id] = Date.now();
+      state.remainingTime[id] = QUIZ_DATA[id].duration;
+      if (!state.answers[id]) state.answers[id] = {};
+    }
+    
+    saveState();
+    render();
+  }
+
+  function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      state.remainingTime[state.activeSection]--;
+      if (state.remainingTime[state.activeSection] <= 0) {
+        state.remainingTime[state.activeSection] = 0;
+        clearInterval(timerInterval);
+        timerInterval = null;
+        finishSection(true);
+        return;
+      }
+      saveState();
+      const t = document.getElementById('timer');
+      if (t) {
+        const rem = state.remainingTime[state.activeSection];
+        t.textContent = '⏱ ' + fmtTime(rem);
+        t.className = 'timer';
+        if (rem <= 60) t.classList.add('danger');
+        else if (rem <= 300) t.classList.add('warning');
+      }
+    }, 1000);
+  }
+  
+  async function finishSection(timedOut) {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    
+    const sectionId = state.activeSection;
+    const section = getSection(sectionId);
+    const userAns = state.answers[sectionId] || {};
+    let correct = 0;
+    section.questions.forEach(q => {
+      if (userAns[q.number] === q.answer) correct++;
+    });
+    const score = Math.round((correct / section.questions.length) * 100);
+    
+    const startedTs = state.startedAt[sectionId] || Date.now();
+    const duration = Math.round((Date.now() - startedTs) / 1000);
+    
+    // Riwayat percobaan
+    const prev = state.scores[sectionId];
+    const history = (prev && prev.history) ? [...prev.history] : [];
+    history.push({
+      correct,
+      total: section.questions.length,
+      score,
+      timedOut: !!timedOut,
+      duration,
+      completedAt: Date.now(),
+    });
+    
+    const best = Math.max(...history.map(h => h.score));
+    const _prevBestForCelebrate = (prev && prev.bestScore) ? prev.bestScore : 0;
+
+    state.scores[sectionId] = {
+      correct,
+      total: section.questions.length,
+      score,
+      bestScore: best,
+      timedOut: !!timedOut,
+      duration,
+      history,
+    };
+    state.completedAt[sectionId] = Date.now();
+    try { recordStreakActivity(); } catch (e) {}
+    setTimeout(() => maybeCelebrateScore(sectionId, score, _prevBestForCelebrate), 350);
+    state.view = 'result';
+    saveState();
+    render();
+    
+    // Hapus paused session kalau ada
+    if (currentUser && isLeaderboardEnabled()) {
+      deletePausedSession(sectionId);
+      delete pausedSessionsCache[sectionId];
+    }
+
+    // Submit ke Supabase di background (hanya best score)
+    if (currentUser && isLeaderboardEnabled()) {
+      submitScoreToSupabase(sectionId, {
+        score: best, correct, total: section.questions.length,
+        duration, timedOut: !!timedOut,
+      }).then(() => {
+        if (state.view === 'result' && state.activeSection === sectionId) {
+          render();
+        }
+      });
+    }
+  }
+
 // ============ GANJIL GENAP ============
   const GG_TOTAL_ROUNDS = 20;
   const GG_ROUND_SECONDS = 60;
