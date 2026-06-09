@@ -3011,15 +3011,22 @@ function showModal(title, msg, onOk, okLabel) {
         questionHtml = `${escapeHtml(q.question || q.text || '')}`;
       }
 
-      // Options
-      const opts = q.options || [];
-      const optsHtml = opts.map((o, i) => {
-        const sel = userAns === i ? ' selected' : '';
-        const letter = String.fromCharCode(65 + i);
+      // Options -- normalize: object {A:..., B:...} (text Q) or null (visual Q -> 5 letters)
+      let optEntries;
+      if (q.options && typeof q.options === 'object' && !Array.isArray(q.options)) {
+        optEntries = Object.keys(q.options).map(letter => ({ letter, text: q.options[letter] }));
+      } else if (Array.isArray(q.options) && q.options.length) {
+        optEntries = q.options.map((t, i) => ({ letter: String.fromCharCode(65 + i), text: t }));
+      } else {
+        optEntries = ['A','B','C','D','E'].map(letter => ({ letter, text: '' }));
+      }
+      const optsHtml = optEntries.map((opt, i) => {
+        const sel = userAns === opt.letter ? ' selected' : '';
+        const showText = opt.text ? `<span>${escapeHtml(opt.text)}</span>` : '<span></span>';
         return `
-          <button class="opt${sel}" data-opt="${i}" role="radio" aria-checked="${userAns === i}">
-            <span class="l">${letter}</span>
-            <span>${escapeHtml(o)}</span>
+          <button class="opt${sel}" data-opt="${opt.letter}" role="radio" aria-checked="${userAns === opt.letter}">
+            <span class="l">${opt.letter}</span>
+            ${showText}
             <span class="k">${i + 1}</span>
           </button>
         `;
@@ -3094,8 +3101,8 @@ function showModal(title, msg, onOk, okLabel) {
     function wire() {
       document.querySelectorAll('[data-opt]').forEach(b => {
         b.addEventListener('click', () => {
-          const i = parseInt(b.getAttribute('data-opt'), 10);
-          selectAnswer(i);
+          const letter = b.getAttribute('data-opt');
+          selectAnswer(letter);
         });
       });
       document.querySelectorAll('[data-jump]').forEach(b => {
@@ -3124,11 +3131,11 @@ function showModal(title, msg, onOk, okLabel) {
       });
     }
 
-    function selectAnswer(i) {
+    function selectAnswer(letter) {
       const q = questions[state.currentIndex];
-      state.answers[sectionId][q.number] = i;
+      state.answers[sectionId][q.number] = letter;
       saveState();
-      showToastNew('Jawaban tersimpan: ' + String.fromCharCode(65 + i));
+      showToastNew('Jawaban tersimpan: ' + letter);
       paint();
     }
     function goNext() {
@@ -3165,11 +3172,23 @@ function showModal(title, msg, onOk, okLabel) {
       }
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
       const q = questions[state.currentIndex];
-      const optsLen = (q.options || []).length;
+      let optsCount;
+      if (q.options && typeof q.options === 'object' && !Array.isArray(q.options)) {
+        optsCount = Object.keys(q.options).length;
+      } else if (Array.isArray(q.options)) {
+        optsCount = q.options.length;
+      } else {
+        optsCount = 5;
+      }
       const k = e.key;
       if (/^[1-9]$/.test(k)) {
         const i = parseInt(k, 10) - 1;
-        if (i >= 0 && i < optsLen) { e.preventDefault(); selectAnswer(i); }
+        if (i >= 0 && i < optsCount) {
+          const letter = String.fromCharCode(65 + i);
+          e.preventDefault();
+          selectAnswer(letter);
+        }
+      }
       } else if (k === 'ArrowRight' || k === 'Enter') { e.preventDefault(); goNext(); }
       else if (k === 'ArrowLeft') { e.preventDefault(); goPrev(); }
       else if (k.toLowerCase() === 'f') { e.preventDefault(); toggleFlag(); }
