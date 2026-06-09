@@ -1369,6 +1369,174 @@ textarea:focus-visible, [tabindex]:focus-visible, .option:focus-visible,
   .quiz-title { font-size: 14px; }
   .card { padding: 12px; }
 }
+
+/* ============ PART 3: dark mode, gamifikasi, settings (ditambahkan) ============ */
+:root {
+  --confetti-1: #FFD700;
+  --confetti-2: #00AEEF;
+  --confetti-3: #1A8F5A;
+  --confetti-4: #EF4444;
+  --confetti-5: #6D28D9;
+}
+html[data-theme="dark"] {
+  --primary: #4D8FD1;
+  --primary-dark: #3470AF;
+  --primary-medium: #5BA0D9;
+  --primary-light: #1A2A44;
+  --accent: #4FC3F7;
+  --bg: #0D1F3C;
+  --surface: #16243F;
+  --text: #E7ECF4;
+  --text-muted: #93A8C2;
+  --border: #243556;
+  --success: #4ADE80;
+  --success-light: #14361F;
+  --danger: #F87171;
+  --danger-light: #3F1818;
+  --warning: #FBBF24;
+  --warning-light: #3A2A0A;
+  --info: #4FC3F7;
+  --info-light: #0F2440;
+  --gold: #FBBF24;
+  --silver: #CBD5E1;
+  --bronze: #D97706;
+  color-scheme: dark;
+}
+html[data-theme="dark"] .modal { background: var(--surface); }
+html[data-theme="dark"] body { background: var(--bg); color: var(--text); }
+html[data-theme="dark"] .skeleton-row {
+  background: linear-gradient(90deg, var(--border) 25%, var(--surface) 50%, var(--border) 75%);
+}
+.icon-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 9px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.icon-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+.streak-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: linear-gradient(135deg, #F97316, #DC2626);
+  color: white;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.3);
+}
+.streak-chip.cold { background: linear-gradient(135deg, #94A3B8, #64748B); box-shadow: none; }
+.milestone-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #FBBF24, #F59E0B);
+  color: #422006;
+}
+html[data-theme="dark"] .milestone-badge { color: #1C1300; }
+.celebration-toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: linear-gradient(135deg, var(--success), #15803D);
+  color: white;
+  padding: 14px 22px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  z-index: 2000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.celebration-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.confetti-container {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 1999;
+  overflow: hidden;
+}
+.confetti-piece {
+  position: absolute;
+  width: 8px; height: 14px;
+  top: -20px;
+  opacity: 0.95;
+  animation: confetti-fall 2.4s linear forwards;
+}
+@keyframes confetti-fall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+.settings-form { display: flex; flex-direction: column; gap: 14px; }
+.settings-form label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+  display: block;
+}
+.settings-form input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+}
+.settings-form input:focus { border-color: var(--primary); outline: none; }
+.settings-form .form-section {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+}
+.settings-form h3 {
+  font-size: 13px;
+  margin-bottom: 10px;
+  color: var(--primary);
+  font-weight: 700;
+}
+.settings-status {
+  font-size: 13px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: none;
+}
+.settings-status.show { display: block; }
+.settings-status.ok { background: var(--success-light); color: var(--success); }
+.settings-status.err { background: var(--danger-light); color: var(--danger); }
+@media (prefers-reduced-motion: reduce) {
+  .confetti-piece { animation: none; display: none; }
+  .celebration-toast { transition: none; }
+}
 </style>
 </head>
 <body>
@@ -1429,6 +1597,39 @@ textarea:focus-visible, [tabindex]:focus-visible, .option:focus-visible,
   </div>
 </div>
 
+
+
+<div id="settingsModal" class="modal-bg hidden" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+  <div class="modal info-modal">
+    <h2 id="settingsModalTitle">&#x2699;&#xFE0F; Pengaturan Akun</h2>
+    <div class="settings-form">
+      <div class="form-section">
+        <h3>&#x1F464; Profil</h3>
+        <label for="settingsDisplayName">Nama Tampilan</label>
+        <input type="text" id="settingsDisplayName" maxlength="40" autocomplete="nickname">
+      </div>
+      <div class="form-section">
+        <h3>&#x1F511; Ganti Password</h3>
+        <label for="settingsCurrPw">Password Saat Ini</label>
+        <input type="password" id="settingsCurrPw" autocomplete="current-password">
+        <div style="height:8px"></div>
+        <label for="settingsNewPw">Password Baru (min. 6 karakter)</label>
+        <input type="password" id="settingsNewPw" autocomplete="new-password" minlength="6">
+        <div style="height:8px"></div>
+        <label for="settingsNewPw2">Ulangi Password Baru</label>
+        <input type="password" id="settingsNewPw2" autocomplete="new-password" minlength="6">
+      </div>
+      <div id="settingsStatus" class="settings-status"></div>
+    </div>
+    <div class="actions" style="margin-top:18px">
+      <button id="settingsCancel" class="btn btn-secondary">Tutup</button>
+      <button id="settingsSave" class="btn btn-primary">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div id="celebrationToast" class="celebration-toast" role="status" aria-live="polite"></div>
+<div id="confettiContainer" class="confetti-container" aria-hidden="true"></div>
 
 <script>
   // ============ KONFIGURASI SUPABASE ============
@@ -1497,6 +1698,7 @@ textarea:focus-visible, [tabindex]:focus-visible, .option:focus-visible,
   
   let state = loadState();
   let currentUser = loadUser();
+  try { applyTheme(); } catch (e) {}
   let timerInterval = null;
   let _sbClient = null;
   let pausedSessionsCache = {};
@@ -1900,6 +2102,196 @@ textarea:focus-visible, [tabindex]:focus-visible, .option:focus-visible,
     `, { closeLabel: 'Siap, Mulai!' });
   }
 
+  // ============ PART 3: TEMA (DARK MODE) ============
+  function _readThemePref() {
+    try { return localStorage.getItem('theme_pref') || 'auto'; } catch (e) { return 'auto'; }
+  }
+  function _resolvedTheme(pref) {
+    if (pref === 'dark') return 'dark';
+    if (pref === 'light') return 'light';
+    try {
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+    } catch (e) {}
+    return 'light';
+  }
+  function applyTheme() {
+    const pref = _readThemePref();
+    const t = _resolvedTheme(pref);
+    document.documentElement.setAttribute('data-theme', t);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', t === 'dark' ? '#0D1F3C' : '#003F87');
+  }
+  function toggleTheme() {
+    const cur = _readThemePref();
+    // Cycle: auto -> light -> dark -> auto
+    const next = cur === 'auto' ? 'light' : cur === 'light' ? 'dark' : 'auto';
+    try { localStorage.setItem('theme_pref', next); } catch (e) {}
+    applyTheme();
+    renderHeader();
+  }
+  function _themeLabel() {
+    const pref = _readThemePref();
+    if (pref === 'dark') return '\u{1F319}';
+    if (pref === 'light') return '\u{2600}\u{FE0F}';
+    return '\u{1F4F1}'; // auto
+  }
+  function _themeTitle() {
+    const pref = _readThemePref();
+    if (pref === 'dark') return 'Mode Gelap (klik utk Mode Otomatis)';
+    if (pref === 'light') return 'Mode Terang (klik utk Mode Gelap)';
+    return 'Mode Otomatis (klik utk Mode Terang)';
+  }
+  try {
+    if (window.matchMedia) {
+      const mm = window.matchMedia('(prefers-color-scheme: dark)');
+      const onChange = () => { if (_readThemePref() === 'auto') applyTheme(); };
+      if (mm.addEventListener) mm.addEventListener('change', onChange);
+      else if (mm.addListener) mm.addListener(onChange);
+    }
+  } catch (e) {}
+
+  // ============ PART 3: STREAK HARIAN ============
+  function _todayKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function _yesterdayKey() {
+    const d = new Date(); d.setDate(d.getDate() - 1);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function _streakKey() { return 'streak_' + (currentUser && currentUser.id ? currentUser.id : 'guest'); }
+  function getStreak() {
+    try {
+      const raw = localStorage.getItem(_streakKey());
+      if (!raw) return { count: 0, lastActive: null };
+      const s = JSON.parse(raw);
+      // Jika last_active < kemarin -> reset cold (0)
+      if (s.lastActive && s.lastActive !== _todayKey() && s.lastActive !== _yesterdayKey()) {
+        return { count: 0, lastActive: s.lastActive };
+      }
+      return s;
+    } catch (e) { return { count: 0, lastActive: null }; }
+  }
+  function recordStreakActivity() {
+    try {
+      const today = _todayKey();
+      const cur = getStreak();
+      let next;
+      if (cur.lastActive === today) next = cur; // sudah dihitung hari ini
+      else if (cur.lastActive === _yesterdayKey()) next = { count: cur.count + 1, lastActive: today };
+      else next = { count: 1, lastActive: today };
+      localStorage.setItem(_streakKey(), JSON.stringify(next));
+      return next;
+    } catch (e) { return { count: 0, lastActive: null }; }
+  }
+
+  // ============ PART 3: MICRO-CELEBRATION ============
+  function _spawnConfetti(n) {
+    const container = document.getElementById('confettiContainer');
+    if (!container) return;
+    const colors = ['var(--confetti-1)','var(--confetti-2)','var(--confetti-3)','var(--confetti-4)','var(--confetti-5)'];
+    for (let i = 0; i < n; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + 'vw';
+      piece.style.background = colors[i % colors.length];
+      piece.style.animationDelay = (Math.random() * 0.6) + 's';
+      piece.style.animationDuration = (1.8 + Math.random() * 1.2) + 's';
+      container.appendChild(piece);
+      setTimeout(() => piece.remove(), 3200);
+    }
+  }
+  function showCelebration(text, opts) {
+    opts = opts || {};
+    const toast = document.getElementById('celebrationToast');
+    if (!toast) return;
+    toast.innerHTML = text;
+    toast.classList.add('show');
+    if (opts.confetti) _spawnConfetti(opts.confetti);
+    setTimeout(() => toast.classList.remove('show'), opts.duration || 3200);
+  }
+  function maybeCelebrateScore(sectionId, newScore, prevBest) {
+    try {
+      // Always celebrate first completion or new personal best (>= 3 point gain)
+      if (prevBest === 0 || prevBest == null) {
+        showCelebration('\u{1F389} Selesai! Skor pertama: <strong>' + newScore + '</strong>', { confetti: 30 });
+        return;
+      }
+      const delta = newScore - prevBest;
+      if (delta >= 3) {
+        showCelebration('\u{1F525} Skor terbaik baru! +' + delta + ' poin (sekarang <strong>' + newScore + '</strong>)', { confetti: 40 });
+      } else if (delta > 0) {
+        showCelebration('\u{2728} Skor naik +' + delta + ' poin! (<strong>' + newScore + '</strong>)', { confetti: 15 });
+      }
+    } catch (e) { console.error('celebration error:', e); }
+  }
+
+  // ============ PART 3: PENGATURAN AKUN ============
+  function openAccountSettings() {
+    if (!currentUser) return;
+    const bg = document.getElementById('settingsModal');
+    if (!bg) return;
+    document.getElementById('settingsDisplayName').value = currentUser.display_name || currentUser.username || '';
+    document.getElementById('settingsCurrPw').value = '';
+    document.getElementById('settingsNewPw').value = '';
+    document.getElementById('settingsNewPw2').value = '';
+    const status = document.getElementById('settingsStatus');
+    status.className = 'settings-status'; status.textContent = '';
+    bg.classList.remove('hidden');
+
+    const saveBtn = document.getElementById('settingsSave');
+    const cancelBtn = document.getElementById('settingsCancel');
+    function close() { bg.classList.add('hidden'); }
+    cancelBtn.onclick = close;
+    bg.onclick = (e) => { if (e.target === bg) close(); };
+    saveBtn.onclick = async () => {
+      await handleSettingsSave(close);
+    };
+  }
+  function _setSettingsStatus(msg, kind) {
+    const status = document.getElementById('settingsStatus');
+    status.textContent = msg;
+    status.className = 'settings-status show ' + (kind || 'ok');
+  }
+  async function handleSettingsSave(closeFn) {
+    const sb = initSupabase();
+    if (!sb || !currentUser) { _setSettingsStatus('Supabase tidak aktif', 'err'); return; }
+    const displayName = (document.getElementById('settingsDisplayName').value || '').trim();
+    const currPw = document.getElementById('settingsCurrPw').value || '';
+    const newPw = document.getElementById('settingsNewPw').value || '';
+    const newPw2 = document.getElementById('settingsNewPw2').value || '';
+    if (!displayName) { _setSettingsStatus('Nama tampilan tidak boleh kosong', 'err'); return; }
+
+    const changes = {};
+    if (displayName !== (currentUser.display_name || currentUser.username)) {
+      changes.display_name = displayName;
+    }
+    const wantsChangePw = newPw.length > 0 || newPw2.length > 0 || currPw.length > 0;
+    if (wantsChangePw) {
+      if (newPw.length < 6) { _setSettingsStatus('Password baru min. 6 karakter', 'err'); return; }
+      if (newPw !== newPw2) { _setSettingsStatus('Konfirmasi password baru tidak cocok', 'err'); return; }
+      if (!currPw) { _setSettingsStatus('Isi password saat ini utk verifikasi', 'err'); return; }
+      const curHash = await hashPassword(currPw);
+      if (curHash !== currentUser.password_hash) {
+        _setSettingsStatus('Password saat ini salah', 'err'); return;
+      }
+      changes.password_hash = await hashPassword(newPw);
+    }
+    if (Object.keys(changes).length === 0) { _setSettingsStatus('Tidak ada perubahan', 'err'); return; }
+    try {
+      const { data, error } = await sb.from('users').update(changes).eq('id', currentUser.id).select().single();
+      if (error) { _setSettingsStatus('Gagal simpan: ' + error.message, 'err'); return; }
+      // Update cache lokal
+      currentUser = Object.assign({}, currentUser, changes);
+      saveUser(currentUser);
+      _setSettingsStatus('Tersimpan!', 'ok');
+      renderHeader();
+      setTimeout(closeFn, 900);
+    } catch (e) {
+      _setSettingsStatus('Error: ' + e.message, 'err');
+    }
+  }
+
 function showModal(title, msg, onOk, okLabel) {
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalMsg').textContent = msg;
@@ -1944,19 +2336,89 @@ function showModal(title, msg, onOk, okLabel) {
     const right = document.getElementById('headerRight');
     let html = '';
     
+    // Theme toggle: selalu tampil
+
+    
+    html += `
+
+    
+      <button class="icon-btn" id="themeToggleBtn" title="${_themeTitle()}" aria-label="${_themeTitle()}">${_themeLabel()}</button>
+
+    
+    `;
+
+    
     if (isLeaderboardEnabled() && currentUser) {
+
+    
+      const streak = getStreak();
+
+    
+      const streakHtml = streak.count > 0
+
+    
+        ? `<div class="streak-chip" title="Streak ${streak.count} hari berturut-turut">🔥 ${streak.count}</div>`
+
+    
+        : '';
+
+    
       html += `
-        <div class="user-chip">👤 ${escapeHtml(currentUser.display_name || currentUser.username)}</div>
+
+    
+        ${streakHtml}
+
+    
+        <div class="user-chip" id="userChipBtn" role="button" tabindex="0" title="Pengaturan akun" style="cursor:pointer">👤 ${escapeHtml(currentUser.display_name || currentUser.username)}</div>
+
+    
         <button class="btn btn-ghost btn-sm" id="logoutBtn">Logout</button>
+
+    
       `;
+
+    
     }
 
     right.innerHTML = html;
 
     const logoutBtn = document.getElementById('logoutBtn');
+
+
     if (logoutBtn) logoutBtn.addEventListener('click', () => {
+
+
       showModal('Logout?', 'Kamu akan keluar dari akun. Lanjut?', logout);
+
+
     });
+
+
+    const themeBtn = document.getElementById('themeToggleBtn');
+
+
+    if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+
+
+    const userChip = document.getElementById('userChipBtn');
+
+
+    if (userChip) {
+
+
+      userChip.addEventListener('click', openAccountSettings);
+
+
+      userChip.addEventListener('keydown', (e) => {
+
+
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAccountSettings(); }
+
+
+      });
+
+
+    }
   }
   
   // ============ RENDER ============
@@ -2779,7 +3241,8 @@ function showModal(title, msg, onOk, okLabel) {
     });
     
     const best = Math.max(...history.map(h => h.score));
-    
+    const _prevBestForCelebrate = (prev && prev.bestScore) ? prev.bestScore : 0;
+
     state.scores[sectionId] = {
       correct,
       total: section.questions.length,
@@ -2790,6 +3253,8 @@ function showModal(title, msg, onOk, okLabel) {
       history,
     };
     state.completedAt[sectionId] = Date.now();
+    try { recordStreakActivity(); } catch (e) {}
+    setTimeout(() => maybeCelebrateScore(sectionId, score, _prevBestForCelebrate), 350);
     state.view = 'result';
     saveState();
     render();
