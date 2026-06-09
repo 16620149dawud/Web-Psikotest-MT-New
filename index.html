@@ -1513,6 +1513,8 @@ button{
   .user-pill > span:last-of-type{ display: none; } /* hide chevron too */
 }
 
+
+.hidden{display:none !important;}
 </style>
 </head>
 <body>
@@ -1552,6 +1554,27 @@ button{
     <div class="gr-footer-line right"></div>
   </div>
 </footer>
+
+
+<div id="toastNew" class="toast" role="status" aria-live="polite"></div>
+
+<div id="onbModal" class="onb-shell hidden" role="dialog" aria-modal="true" aria-labelledby="onbHeading">
+  <div class="onb-card">
+    <div class="onb-step">
+      <div class="ill"><span class="glyph" id="onbGlyph">&#x2726;</span></div>
+      <div>
+        <div class="eyebrow accent" id="onbEyebrow" style="margin-bottom:8px"></div>
+        <h2 id="onbHeading" class="h-display"></h2>
+        <p id="onbBody"></p>
+      </div>
+    </div>
+    <div class="onb-footer">
+      <button class="btn subtle" id="onbSkip">Lewati</button>
+      <div class="dots" aria-hidden="true" id="onbDots"></div>
+      <button class="btn primary" id="onbNext">Lanjut &rarr;</button>
+    </div>
+  </div>
+</div>
 
 <div id="modal" class="modal-bg hidden">
   <div class="modal">
@@ -2308,1150 +2331,1081 @@ function showModal(title, msg, onOk, okLabel) {
   }
   
   // ============ HEADER ============
-  function renderHeader() {
-    const right = document.getElementById('headerRight');
-    let html = '';
-    
-    // Theme toggle: selalu tampil
+  // CAT_COLORS dan CAT_GLYPHS untuk visualisasi per-kategori
+  const CAT_COLORS = {
+    verbal:       '#38BDF8',
+    numerik:      '#A78BFA',
+    logika:       '#34D399',
+    spasial:      '#FB923C',
+    antonim:      '#F472B6',
+    analogi:      '#FBBF24',
+    ganjil_genap: '#34D399',
+    selisih_angka:'#A78BFA',
+    selisih_huruf:'#F472B6',
+  };
+  const CAT_GLYPHS = {
+    verbal:'V', numerik:'N', logika:'L', spasial:'S',
+    antonim:'A', analogi:'G', ganjil_genap:'±', selisih_angka:'∑', selisih_huruf:'Σ',
+  };
+  function catColor(id) { return CAT_COLORS[id] || 'var(--accent)'; }
+  function catGlyph(id) { return CAT_GLYPHS[id] || 'L'; }
 
-    
-    html += `
-
-    
-      <button class="icon-btn" id="themeToggleBtn" title="${_themeTitle()}" aria-label="${_themeTitle()}">${_themeLabel()}</button>
-
-    
-    `;
-
-    
-    if (isLeaderboardEnabled() && currentUser) {
-
-    
-      const streak = getStreak();
-
-    
-      const streakHtml = streak.count > 0
-
-    
-        ? `<div class="streak-chip" title="Streak ${streak.count} hari berturut-turut">🔥 ${streak.count}</div>`
-
-    
-        : '';
-
-    
-      html += `
-
-    
-        ${streakHtml}
-
-    
-        <div class="user-chip" id="userChipBtn" role="button" tabindex="0" title="Pengaturan akun" style="cursor:pointer">👤 ${escapeHtml(currentUser.display_name || currentUser.username)}</div>
-
-    
-        <button class="btn btn-ghost btn-sm" id="logoutBtn">Logout</button>
-
-    
-      `;
-
-    
-    }
-
-    right.innerHTML = html;
-
-    const logoutBtn = document.getElementById('logoutBtn');
-
-
-    if (logoutBtn) logoutBtn.addEventListener('click', () => {
-
-
-      showModal('Logout?', 'Kamu akan keluar dari akun. Lanjut?', logout);
-
-
-    });
-
-
-    const themeBtn = document.getElementById('themeToggleBtn');
-
-
-    if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
-
-
-    const userChip = document.getElementById('userChipBtn');
-
-
-    if (userChip) {
-
-
-      userChip.addEventListener('click', openAccountSettings);
-
-
-      userChip.addEventListener('keydown', (e) => {
-
-
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAccountSettings(); }
-
-
-      });
-
-
-    }
+  // Toast helper
+  function showToastNew(msg, duration) {
+    const el = document.getElementById('toastNew');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), duration || 1600);
   }
-  
+
+  // ============ NEW HEADER (appbar) ============
+  function renderHeader() {
+    const header = document.querySelector('header.gr-header') || document.querySelector('header');
+    if (!header) return;
+    // Replace seluruh isi header dgn appbar baru
+    let rightHtml = '';
+    if (currentUser) {
+      const streak = (typeof getStreak === 'function') ? getStreak() : { count: 0 };
+      const av = (currentUser.display_name || currentUser.username || '?').charAt(0).toUpperCase();
+      const name = escapeHtml(currentUser.display_name || currentUser.username || '');
+      const streakChip = streak.count > 0
+        ? `<span class="streak-chip">\u{1F525} Streak ${streak.count} hari</span>`
+        : '';
+      rightHtml = `
+        ${streakChip}
+        <div class="user-pill" id="userPill">
+          <span class="av">${av}</span>
+          <span class="nm-text">${name}</span>
+          <span style="color:var(--ink-3);font-size:11px">&#x25BE;</span>
+          <div class="menu" id="userMenu">
+            <button class="menu-item" id="settingsBtn">&#x2699; Pengaturan Akun</button>
+            <button class="menu-item" id="leaderboardBtn">&#x1F3C6; Leaderboard</button>
+            <button class="menu-item danger" id="logoutBtn">&#x23CF; Keluar</button>
+          </div>
+        </div>
+      `;
+    }
+    header.outerHTML = `
+      <header class="appbar">
+        <div class="brand" id="brandHome" style="cursor:pointer">
+          <div class="logo">L</div>
+          <div class="nm">
+            <span class="t">Latihan Psikotes</span>
+            <span class="s">MT Transjakarta</span>
+          </div>
+        </div>
+        <div class="right">${rightHtml}</div>
+      </header>
+    `;
+    // Re-wire
+    const brand = document.getElementById('brandHome');
+    if (brand) brand.addEventListener('click', () => {
+      if (currentUser) { state.view = 'home'; saveState(); render(); }
+    });
+    const userPill = document.getElementById('userPill');
+    const userMenu = document.getElementById('userMenu');
+    if (userPill && userMenu) {
+      userPill.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userMenu.classList.toggle('open');
+      });
+      document.addEventListener('click', () => userMenu.classList.remove('open'), { once: true });
+    }
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', () => {
+      showModal('Logout?', 'Kamu akan keluar dari akun. Lanjut?', logout);
+    });
+    const settingsBtn = document.getElementById('settingsBtn');
+    if (settingsBtn) settingsBtn.addEventListener('click', () => {
+      if (userMenu) userMenu.classList.remove('open');
+      openAccountSettings();
+    });
+    const lbBtn = document.getElementById('leaderboardBtn');
+    if (lbBtn) lbBtn.addEventListener('click', () => {
+      if (userMenu) userMenu.classList.remove('open');
+      state.view = 'leaderboard'; saveState(); render();
+    });
+  }
+
   // ============ RENDER ============
   const app = document.getElementById('app');
-  
+
   function render() {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-    
-    // Auth gate: paksa login kalau Supabase aktif tapi belum login
     if (isLeaderboardEnabled() && !currentUser && state.view !== 'auth') {
-      state.view = 'auth';
-      saveState();
+      state.view = 'auth'; saveState();
     }
-    
     renderHeader();
-    
     if (state.view === 'auth') renderAuth();
     else if (state.view === 'home' || state.view === 'leaderboard') renderHome();
+    else if (state.view === 'bundle_select' || state.view === 'packet_select') renderPacketSelect();
     else if (state.view === 'quiz') renderQuiz();
     else if (state.view === 'result') renderResult();
-    else if (state.view === 'bundle_select') renderBundleSelect();
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    else { state.view = 'home'; render(); }
   }
-  
+
+  // ---------- AUTH ----------
   function renderAuth() {
     let mode = 'login';
-    
-    function draw() {
-      app.innerHTML = `
-        <div class="card setup-card">
-          <h2 style="margin-bottom:8px">${mode === 'login' ? 'Login dulu' : 'Daftar Akun Baru'}</h2>
-          <p class="text-muted mb-4" style="font-size:14px">${mode === 'login' ? 'Masukkan username dan password kamu buat lanjut.' : 'Bikin akun pakai username dan password sederhana. Ini bakal jadi nama kamu di leaderboard.'}</p>
-          
-          <div class="auth-tabs">
-            <button class="auth-tab ${mode === 'login' ? 'active' : ''}" data-mode="login">Login</button>
-            <button class="auth-tab ${mode === 'register' ? 'active' : ''}" data-mode="register">Daftar Baru</button>
-          </div>
-          
-          <div id="authError"></div>
-          
-          ${mode === 'register' ? `
-            <div class="form-group">
-              <label>Nama Tampilan</label>
-              <input class="form-input" id="displayName" placeholder="Contoh: Andi K." maxlength="40">
-              <div class="form-help">Nama yang muncul di leaderboard</div>
+    function html(modeArg) {
+      return `
+        <main class="login-screen">
+          <section class="login-brand">
+            <div class="eyebrow">&#x2605; MT Transjakarta &middot; 2026</div>
+            <h1 class="h-display">
+              Latih dirimu,<br>
+              <em>tenang dulu</em>,<br>
+              baru ujian.
+            </h1>
+            <p class="pitch">
+              9 kategori psikotes resmi, 775+ soal, timer otomatis, dan progres yang tersinkron antar device. Datang lagi besok &mdash; kami ingat di mana kamu berhenti.
+            </p>
+            <div class="pitch-stats">
+              <div class="ps"><div class="num">9</div><div class="lbl">Kategori</div></div>
+              <div class="ps"><div class="num">775</div><div class="lbl">Item Bank</div></div>
+              <div class="ps"><div class="num">&infin;</div><div class="lbl">Pengulangan</div></div>
             </div>
-          ` : ''}
-          
-          <div class="form-group">
-            <label>Username</label>
-            <input class="form-input" id="username" placeholder="huruf kecil tanpa spasi" autocomplete="username" maxlength="30">
-            ${mode === 'register' ? '<div class="form-help">Min 3 karakter, huruf/angka/underscore</div>' : ''}
-          </div>
-          
-          <div class="form-group">
-            <label>Password</label>
-            <input class="form-input" id="password" type="password" placeholder="${mode === 'register' ? 'Min 4 karakter' : 'Password kamu'}" autocomplete="${mode === 'register' ? 'new-password' : 'current-password'}">
-          </div>
-          
-          <button class="btn btn-block btn-lg" id="submitAuth">${mode === 'login' ? 'Masuk' : 'Daftar & Masuk'}</button>
-        </div>
+          </section>
+          <section class="login-card" role="form">
+            <div class="tab-row" role="tablist">
+              <button role="tab" class="tab ${modeArg==='login'?'active':''}" id="tabLogin">Masuk</button>
+              <button role="tab" class="tab ${modeArg==='register'?'active':''}" id="tabRegister">Daftar Baru</button>
+            </div>
+            <form class="field-group" id="authForm" autocomplete="on">
+              ${modeArg === 'register' ? `
+              <div>
+                <label class="field-label" for="authDisplayName">Nama Tampilan</label>
+                <div class="field">
+                  <span class="ico" aria-hidden="true">&#x2662;</span>
+                  <input id="authDisplayName" type="text" placeholder="cth: Budi Hartono" autocomplete="nickname">
+                </div>
+                <div class="field-helper"><span>Nama ini muncul di leaderboard.</span><span></span></div>
+              </div>
+              ` : ''}
+              <div>
+                <label class="field-label" for="authUsername">Username</label>
+                <div class="field">
+                  <span class="ico" aria-hidden="true">@</span>
+                  <input id="authUsername" type="text" placeholder="cth: budihartono" autocomplete="username" autocapitalize="off">
+                </div>
+                <div class="field-helper"><span>Huruf kecil, tanpa spasi, min. 4 karakter.</span><span></span></div>
+              </div>
+              <div>
+                <label class="field-label" for="authPassword">Password</label>
+                <div class="field">
+                  <span class="ico" aria-hidden="true">&#x29BF;</span>
+                  <input id="authPassword" type="password" placeholder="Minimal 6 karakter"
+                    autocomplete="${modeArg==='register'?'new-password':'current-password'}">
+                </div>
+                <div class="field-helper"><span>&nbsp;</span><span></span></div>
+              </div>
+              <div id="authError" class="hidden" style="padding:12px 16px;border-radius:12px;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);color:#F87171;font-size:14px"></div>
+              <button class="btn primary lg" type="submit" style="width:100%;margin-top:12px" id="authSubmit">
+                ${modeArg === 'login' ? 'Masuk ke Latihan &rarr;' : 'Buat Akun Baru &rarr;'}
+              </button>
+            </form>
+            <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--ink-3);text-align:center">
+              Dengan masuk, kamu menyetujui penyimpanan progres latihan di akunmu.
+            </div>
+          </section>
+        </main>
       `;
-      
-      document.querySelectorAll('.auth-tab').forEach(el => {
-        el.addEventListener('click', () => {
-          mode = el.dataset.mode;
-          draw();
-        });
-      });
-      
-      document.getElementById('submitAuth').addEventListener('click', handleAuth);
-      
-      // Enter key submit
-      ['username', 'password', 'displayName'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') handleAuth();
-        });
-      });
     }
-    
-    async function handleAuth() {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value;
-      const errEl = document.getElementById('authError');
-      const btn = document.getElementById('submitAuth');
-      
-      errEl.innerHTML = '';
-      
-      if (!username || !password) {
-        errEl.innerHTML = '<div class="form-error">Username dan password wajib diisi</div>';
-        return;
-      }
-      
-      if (mode === 'register') {
-        if (username.length < 3) {
-          errEl.innerHTML = '<div class="form-error">Username minimal 3 karakter</div>';
-          return;
-        }
-        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-          errEl.innerHTML = '<div class="form-error">Username hanya boleh huruf, angka, dan underscore</div>';
-          return;
-        }
-        if (password.length < 4) {
-          errEl.innerHTML = '<div class="form-error">Password minimal 4 karakter</div>';
-          return;
-        }
-      }
-      
-      btn.disabled = true;
-      btn.textContent = mode === 'login' ? 'Sedang masuk...' : 'Sedang daftar...';
-      
-      try {
-        let user;
-        if (mode === 'login') {
-          user = await login(username, password);
-        } else {
-          const displayName = document.getElementById('displayName').value.trim() || username;
-          user = await register(username, password, displayName);
-        }
-        currentUser = user;
-        saveUser(user);
-        state.userId = user.id;
-        state.view = 'home';
-        saveState();
-        // Sync progress dari Supabase → state lokal (cross-device support)
-        syncStateFromSupabase().then(() => render());
-        render(); // render dulu dengan state lokal, akan re-render setelah sync
-      } catch (e) {
-        errEl.innerHTML = `<div class="form-error">${escapeHtml(e.message)}</div>`;
-        btn.disabled = false;
-        btn.textContent = mode === 'login' ? 'Masuk' : 'Daftar & Masuk';
-      }
+    app.innerHTML = html(mode);
+    function setMode(m) { mode = m; app.innerHTML = html(mode); wire(); }
+    function showError(msg) {
+      const e = document.getElementById('authError');
+      e.textContent = msg; e.classList.remove('hidden');
     }
-    
-    draw();
+    function clearError() {
+      document.getElementById('authError').classList.add('hidden');
+    }
+    function wire() {
+      document.getElementById('tabLogin').onclick = () => setMode('login');
+      document.getElementById('tabRegister').onclick = () => setMode('register');
+      const form = document.getElementById('authForm');
+      const usernameInput = document.getElementById('authUsername');
+      if (usernameInput) usernameInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.toLowerCase().replace(/\s/g, '');
+      });
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        clearError();
+        const u = document.getElementById('authUsername').value.trim();
+        const p = document.getElementById('authPassword').value;
+        const dnEl = document.getElementById('authDisplayName');
+        const dn = dnEl ? dnEl.value.trim() : '';
+        if (u.length < 4) return showError('Username minimal 4 karakter.');
+        if (p.length < 6) return showError('Password minimal 6 karakter.');
+        if (mode === 'register' && !dn) return showError('Nama tampilan tidak boleh kosong.');
+        const btn = document.getElementById('authSubmit');
+        btn.disabled = true; const old = btn.innerHTML;
+        btn.innerHTML = mode === 'login' ? 'Memuat&hellip;' : 'Mendaftar&hellip;';
+        try {
+          const user = mode === 'login' ? await login(u, p) : await register(u, p, dn);
+          currentUser = user; saveUser(user);
+          state.userId = user.id; state.view = 'home'; saveState();
+          try { syncStateFromSupabase().then(() => render()); } catch (_) {}
+          render();
+          // Onboarding
+          setTimeout(() => maybeShowOnboardingNew(), 400);
+        } catch (err) {
+          showError(err.message || 'Terjadi kesalahan.');
+          btn.disabled = false; btn.innerHTML = old;
+        }
+      };
+    }
+    wire();
   }
-  
+
+  // ---------- HOME ----------
   async function renderHome() {
     if (isLeaderboardEnabled() && currentUser) {
-      pausedSessionsCache = await fetchPausedSessions();
+      try { pausedSessionsCache = await fetchPausedSessions(); } catch (_) {}
     }
     const sections = getOrderedSections();
-    
-    let totalCompleted = 0;
-    let totalScore = 0;
+    let totalCompleted = 0, totalBest = 0, totalAttempted = 0;
     sections.forEach(s => {
-      if (s.isBundled) {
-        const bids = getBundleIds(s.id);
-        const doneCount = bids.filter(bid => state.scores[bid]).length;
-        if (doneCount === bids.length && bids.length > 0) totalCompleted++;
-        const scores = bids.map(bid => state.scores[bid] ? (state.scores[bid].bestScore || state.scores[bid].score) : 0).filter(v => v > 0);
-        if (scores.length > 0) totalScore += Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
-      } else if (state.scores[s.id]) {
-        totalCompleted++;
-        totalScore += state.scores[s.id].bestScore || state.scores[s.id].score;
+      const st = getSectionStatus(s.id);
+      if (st === 'done') totalCompleted++;
+      if (state.scores[s.id]) {
+        const best = state.scores[s.id].bestScore || state.scores[s.id].score || 0;
+        if (best > 0) { totalBest += best; totalAttempted++; }
       }
     });
-    const avgScore = totalCompleted > 0 ? Math.round(totalScore / totalCompleted) : 0;
-    const totalQ = sections.reduce((sum, s) => {
-      if (s.id === 'ganjil_genap' || s.id === 'selisih_angka' || s.id === 'selisih_huruf') return sum;
-      if (s.isBundled) return sum + getBundleIds(s.id).length * 25;
-      return sum + (s.questions ? s.questions.length : 0);
-    }, 0);
-    const progressPct = sections.length > 0 ? Math.round((totalCompleted / sections.length) * 100) : 0;
-    
-    const cardsHtml = sections.map(s => {
-      const status = getSectionStatus(s.id);
-      const score = state.scores[s.id];
-      let answeredCount, questionTotal;
-      if (s.id === 'ganjil_genap') {
-        const g = state.ganjilGenap;
-        answeredCount = g ? g.questions.filter(q => q.userAnswer !== undefined).length : 0;
-        questionTotal = g ? g.questions.length : 0;
-      } else if (s.id === 'selisih_angka') {
-        const sa = state.selisihAngka;
-        answeredCount = sa ? sa.answered : 0;
-        questionTotal = 0;
-      } else if (s.id === 'selisih_huruf') {
-        const sh = state.selisihHuruf;
-        answeredCount = sh ? sh.answered : 0;
-        questionTotal = 0;
-      } else if (s.isBundled) {
-        const bids = getBundleIds(s.id);
-        const doneBundles = bids.filter(bid => getSectionStatus(bid) === 'done').length;
-        answeredCount = doneBundles;
-        questionTotal = bids.length;
-      } else {
-        answeredCount = Object.keys(state.answers[s.id] || {}).length;
-        questionTotal = s.questions ? s.questions.length : 0;
-      }
-      const progress = questionTotal > 0 ? (answeredCount / questionTotal) * 100 : 0;
-      
-      let badge = '<span class="badge badge-pending">Belum mulai</span>';
-      let actionLabel = 'Mulai';
-      let extraInfo = '';
-      
-      if (status === 'paused') {
-        badge = '<span class="badge badge-paused">⏸ Ditunda</span>';
-        actionLabel = '🔒 Opsi';
-        const ps = pausedSessionsCache[s.id];
-        const remaining = ps ? fmtTime(ps.time_remaining_seconds) : '—';
-        extraInfo = `<div style="font-size:12px;color:var(--text-muted);line-height:1.3">Sisa <strong>${remaining}</strong> · ${answeredCount}/${questionTotal} soal</div>`;
-      } else if (status === 'in_progress') {
-        badge = '<span class="badge badge-progress">Sedang berjalan</span>';
-        actionLabel = 'Lanjutkan';
-        extraInfo = `<div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
-          <div style="font-size:12px;color:var(--text-muted)">${answeredCount}/${questionTotal} soal terjawab</div>`;
-      } else if (status === 'done') {
-        if (s.isBundled) {
-          const bids = getBundleIds(s.id);
-          const doneBundles = bids.filter(bid => getSectionStatus(bid) === 'done').length;
-          const bestScores = bids.map(bid => state.scores[bid] ? (state.scores[bid].bestScore || state.scores[bid].score) : 0).filter(v => v > 0);
-          const avgBest = bestScores.length > 0 ? Math.round(bestScores.reduce((a,b)=>a+b,0)/bestScores.length) : 0;
-          badge = `<span class="badge badge-done">${doneBundles}/${bids.length} selesai</span>`;
-          if (avgBest > 0) extraInfo = `<div style="font-size:12px;color:var(--text-muted)">Rata-rata skor: <strong>${avgBest}%</strong></div>`;
-          actionLabel = 'Pilih Paket';
-        } else {
-          const best = score.bestScore || score.score;
-          badge = `<span class="badge badge-done">Terbaik ${best}%</span>`;
-          actionLabel = 'Lihat Hasil';
-          const hist = score.history || [];
-          if (hist.length > 1) {
-            const pills = hist.map((h, i) => {
-              const cls = h.score >= 70 ? 'hist-green' : h.score >= 50 ? 'hist-amber' : 'hist-red';
-              return `<span class="hist-pill ${cls}">${h.score}%</span>`;
-            }).join('');
-            extraInfo = `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);flex-wrap:wrap">
-              <span>Riwayat:</span>${pills}
-            </div>`;
-          }
-        }
-      }
+    const avgScore = totalAttempted ? Math.round(totalBest / totalAttempted) : 0;
+    const overallPct = sections.length ? Math.round((totalCompleted / sections.length) * 100) : 0;
+    const firstName = (currentUser && (currentUser.display_name || currentUser.username) || 'Kawan').split(' ')[0];
+    const nextCat = sections.find(s => getSectionStatus(s.id) === 'in_progress')
+                || sections.find(s => getSectionStatus(s.id) === 'paused')
+                || sections.find(s => getSectionStatus(s.id) === 'not_started')
+                || sections[0];
+    const remainingCount = Math.max(0, sections.length - totalCompleted);
 
-      if (s.isBundled && status === 'in_progress') {
-        const bids = getBundleIds(s.id);
-        const doneBundles = bids.filter(bid => getSectionStatus(bid) === 'done').length;
-        const bestScores = bids.map(bid => state.scores[bid] ? (state.scores[bid].bestScore || state.scores[bid].score) : 0).filter(v => v > 0);
-        const avgBest = bestScores.length > 0 ? Math.round(bestScores.reduce((a,b)=>a+b,0)/bestScores.length) : 0;
-        badge = `<span class="badge badge-progress">${doneBundles}/${bids.length} selesai</span>`;
-        if (avgBest > 0) extraInfo = `<div style="font-size:12px;color:var(--text-muted)">Rata-rata skor: <strong>${avgBest}%</strong></div>`;
-        actionLabel = 'Pilih Paket';
-      }
-
-
-      const metaHtml = s.id === 'ganjil_genap'
-        ? '<span>🧮 20 babak</span><span>⏱ ~20 menit</span><span>🔢 +1-9</span>'
-        : s.id === 'selisih_angka'
-            ? '<span>🔢 Soal Acak</span><span>⏱ 5 menit</span><span>📊 Selisih Terbesar</span>'
-          : s.id === 'selisih_huruf'
-            ? '<span>🔤 Soal Acak</span><span>⏱ 5 menit</span><span>📊 Selisih Terbesar</span>'
-        : s.isBundled
-          ? `<span>📦 ${getBundleIds(s.id).length} paket</span><span>📝 25 soal/paket</span><span>⏱ 30 menit/paket</span>`
-          : `<span>📝 ${s.questions ? s.questions.length : 0} soal</span><span>⏱ ${Math.floor(s.duration/60)} menit</span>${s.type === 'visual' ? '<span>🖼 Gambar</span>' : ''}`;
-      
-      return `
-        <div class="card section-card" data-section="${s.id}" data-action="${status}">
-          <div class="section-card-header">
-            <h3>${s.title}</h3>
-            ${badge}
+    // Hero
+    let heroHtml = `
+      <section class="hero-greet">
+        <div>
+          <div class="eyebrow">Selamat datang kembali</div>
+          <h2 class="h-display">
+            Halo ${escapeHtml(firstName)},<br>
+            tinggal <em>${remainingCount} kategori</em> lagi.
+          </h2>
+          <p>
+            Rata-rata skor terbaikmu <strong style="color:var(--ink)">${avgScore}%</strong>${avgScore >= 60 ? ' &mdash; sudah di atas rata-rata global.' : ' &mdash; teruskan latihan ya.'}
+            ${nextCat ? `Lanjutkan <strong style="color:var(--ink)">${escapeHtml(nextCat.title)}</strong> untuk naik peringkat.` : ''}
+          </p>
+          <div class="cta-row">
+            ${nextCat ? `<button class="btn primary lg" id="ctaResume">
+              <span class="cta-long">Lanjutkan ${escapeHtml(nextCat.title)} &rarr;</span>
+              <span class="cta-short">Lanjutkan &rarr;</span>
+            </button>` : ''}
+            <button class="btn ghost" id="ctaLeaderboard">Lihat Leaderboard</button>
           </div>
-          <div class="section-meta">${metaHtml}</div>
-          ${extraInfo}
-          <button class="btn btn-sm">${actionLabel}</button>
         </div>
+        <div class="hero-ring">
+          <div class="ring" style="--pct:${overallPct}">
+            <div class="v">
+              <div class="n">${overallPct}%</div>
+              <div class="l">Total Progres</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    `;
+
+    // Cat cards
+    const cardsHtml = sections.map(s => {
+      const st = getSectionStatus(s.id);
+      const sc = state.scores[s.id];
+      const best = sc ? (sc.bestScore || sc.score || 0) : 0;
+      const color = catColor(s.id);
+      const glyph = catGlyph(s.id);
+      // Compute progress fraction
+      let progress = 0;
+      if (s.isBundled) {
+        const bids = s.bundleIds || [];
+        const done = bids.filter(bid => getSectionStatus(bid) === 'done').length;
+        progress = bids.length ? done / bids.length : 0;
+      } else if (st === 'done') progress = 1;
+      else if (st === 'in_progress' || st === 'paused') progress = 0.5;
+
+      const numQ = s.isBundled
+        ? ((QUIZ_DATA[(s.bundleIds||[])[0]] || {}).questions || []).length || 25
+        : ((s.questions || []).length || 25);
+      const durMin = s.isBundled
+        ? Math.round(((QUIZ_DATA[(s.bundleIds||[])[0]] || {}).duration || 1800) / 60)
+        : Math.round((s.duration || 1800) / 60);
+      const pktCount = s.isBundled ? (s.bundleIds || []).length : 1;
+
+      let statusHtml = '';
+      if (st === 'paused') statusHtml = `<span class="status paused">&#x23F8; Ditunda</span>`;
+      else if (st === 'done') statusHtml = `<span class="status done">&check; ${best}%</span>`;
+
+      let footLeft = 'Belum mulai';
+      if (st === 'in_progress') footLeft = best > 0 ? `Terbaik ${best}%` : 'Sedang berjalan';
+      else if (st === 'paused') footLeft = best > 0 ? `Terbaik ${best}%` : 'Sesi ditunda';
+      else if (st === 'done') footLeft = `Selesai &middot; Terbaik ${best}%`;
+      const footRight = st === 'not_started' ? 'Mulai &rarr;' : st === 'paused' ? 'Lanjut &rarr;' : 'Lanjut &rarr;';
+
+      return `
+        <button class="cat-card" data-section="${s.id}" style="--cat-color:${color}">
+          ${statusHtml}
+          <div class="glyph">${glyph}</div>
+          <div>
+            <div class="ttl">${escapeHtml(s.title)}</div>
+            <div style="margin-top:4px;font-size:13px;color:var(--ink-3);max-width:30ch;line-height:1.4">
+              ${s.tagline ? escapeHtml(s.tagline) : 'Latihan ' + escapeHtml(s.title.toLowerCase()) + '.'}
+            </div>
+          </div>
+          <div class="meta">
+            <span>${pktCount} paket</span><span>&middot;</span>
+            <span>${numQ} soal</span><span>&middot;</span>
+            <span>${durMin} mnt</span>
+          </div>
+          <div class="bar"><i style="width:${Math.round(progress*100)}%"></i></div>
+          <div class="foot">
+            <span>${footLeft}</span>
+            <span class="go">${footRight}</span>
+          </div>
+        </button>
       `;
     }).join('');
-    
-    const showReset = Object.keys(state.completedAt).length > 0 || Object.keys(state.startedAt).length > 0;
-    
-    const lbTabs = [{ id: 'total', title: 'Semua' }, ...sections];
-    
-    app.innerHTML = `
-      <div class="home-layout">
-        <div class="home-layout-main">
-          <div class="home-top-sticky">
-          <!-- Status Bar -->
-          <div class="status-bar">
-            <div class="status-bar-left">
-              <h2>Latihan Psikotes</h2>
-            </div>
-            <div class="status-bar-center">
-              <div class="progress-pill">
-                ${totalCompleted} dari ${sections.length} section selesai
-                <div class="mini-progress">
-                  <div class="mini-progress-fill" style="width:${progressPct}%"></div>
-                </div>
-              </div>
-            </div>
-            <div class="status-bar-right">
-              <div class="status-stat">
-                <div class="status-stat-num">${avgScore}%</div>
-                <div class="status-stat-label">Rata-rata</div>
-              </div>
-              <div class="status-stat">
-                <div class="status-stat-num">${totalQ}</div>
-                <div class="status-stat-label">Soal</div>
-              </div>
-              <div class="status-stat">
-                <div class="status-stat-num">${totalCompleted}/${sections.length}</div>
-                <div class="status-stat-label">Selesai</div>
-              </div>
-            </div>
+
+    const totalSoal = sections.reduce((sum, s) => {
+      const numQ = s.isBundled
+        ? ((QUIZ_DATA[(s.bundleIds||[])[0]] || {}).questions || []).length || 25
+        : ((s.questions || []).length || 25);
+      const pktCount = s.isBundled ? (s.bundleIds || []).length : 1;
+      return sum + (numQ * pktCount);
+    }, 0);
+
+    // Sidebar: leaderboard + streak
+    const streak = (typeof getStreak === 'function') ? getStreak() : { count: 0 };
+    const today = new Date();
+    const dayNames = ['M', 'S', 'S', 'R', 'K', 'J', 'S'];
+    const todayDow = today.getDay();
+    let streakRowHtml = '';
+    for (let i = 6; i >= 0; i--) {
+      const dayIdx = (todayDow - i + 7) % 7;
+      const isToday = i === 0;
+      const filled = i < streak.count;
+      const cls = isToday ? 'now' : (filled ? 'on' : '');
+      streakRowHtml += `<div class="d ${cls}">${dayNames[dayIdx]}</div>`;
+    }
+
+    const sidebarHtml = `
+      <aside>
+        <div class="side-card">
+          <h4>
+            <span>&#x1F3C6; Leaderboard</span>
+            <span style="color:var(--ink-3);font-family:var(--font-sans);text-transform:none;letter-spacing:0;font-weight:400">Top 5</span>
+          </h4>
+          <div id="lbContent"><span class="sr-only">Memuat leaderboard&hellip;</span>
+            <div class="skeleton-row" style="height:36px;border-radius:8px;margin-bottom:6px;background:linear-gradient(90deg,var(--border) 25%,var(--surface-2) 50%,var(--border) 75%);background-size:200% 100%"></div>
+            <div class="skeleton-row" style="height:36px;border-radius:8px;margin-bottom:6px;background:linear-gradient(90deg,var(--border) 25%,var(--surface-2) 50%,var(--border) 75%);background-size:200% 100%"></div>
+            <div class="skeleton-row" style="height:36px;border-radius:8px;margin-bottom:6px;background:linear-gradient(90deg,var(--border) 25%,var(--surface-2) 50%,var(--border) 75%);background-size:200% 100%"></div>
           </div>
-          
-          <!-- Section Grid -->
-          <div class="section-grid-header">
-            <h3>Pilih Section</h3>
-            <span class="hint">Timer mulai otomatis saat kamu masuk</span>
-          </div>
-          </div><!-- end home-top-sticky -->
-          <div class="section-grid">${cardsHtml}</div>
-          ${showReset ? '<div style="margin-top:16px;text-align:center"><button class="btn btn-ghost btn-sm" id="resetAllBtn">🗑 Reset Semua Progress</button></div>' : ''}
         </div>
-        
-        <!-- Sidebar: Leaderboard -->
-        <div class="home-layout-side">
-          <div class="lb-widget" id="lbWidget">
-            <div class="lb-widget-header">
-              <span>🏆</span> Leaderboard
+        <div class="side-card">
+          <h4>
+            <span>&#x1F525; Streak Latihan</span>
+            <span style="color:var(--gold);font-family:var(--font-sans);text-transform:none;letter-spacing:0;font-weight:600">${streak.count} hari</span>
+          </h4>
+          <div class="streak-row">${streakRowHtml}</div>
+          <p class="streak-hint">
+            Latihan lagi besok untuk pertahankan streak. ${streak.count >= 7 ? 'Bonus &#x1F389; sudah dapat!' : 'Bonus setelah 7 hari berturut.'}
+          </p>
+        </div>
+      </aside>
+    `;
+
+    app.innerHTML = `
+      <div class="home-shell">
+        ${heroHtml}
+        <div class="home-grid">
+          <section>
+            <div class="section-head">
+              <span class="lbl">Kategori Tes</span>
+              <span class="meta">${sections.length} kategori &middot; ${totalSoal} soal</span>
             </div>
-            <div class="lb-tabs">
-              ${lbTabs.map(t => `<button class="lb-tab ${state.lbTab === t.id ? 'active' : ''}" data-tab="${t.id}">${t.title}</button>`).join('')}
-            </div>
-            <div id="lbWidgetContent" class="lb-loading"><span class="sr-only">Memuat leaderboard...</span><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div></div>
-          </div>
+            <div class="cat-grid">${cardsHtml}</div>
+          </section>
+          ${sidebarHtml}
         </div>
       </div>
     `;
-    
-    document.querySelectorAll('.section-card').forEach(el => {
+
+    // Wire
+    if (nextCat) {
+      const cta = document.getElementById('ctaResume');
+      if (cta) cta.addEventListener('click', () => startSection(nextCat.id));
+    }
+    const ctaLb = document.getElementById('ctaLeaderboard');
+    if (ctaLb) ctaLb.addEventListener('click', () => {
+      state.view = 'leaderboard'; saveState(); render();
+    });
+    document.querySelectorAll('[data-section]').forEach(el => {
       el.addEventListener('click', () => {
-        const id = el.dataset.section;
-        const action = el.dataset.action;
-        if (QUIZ_DATA[id] && QUIZ_DATA[id].isBundled) {
-          startSection(id);
-        } else if (action === 'done') {
-          state.view = 'result';
-          state.activeSection = id;
-          saveState();
-          render();
-        } else if (action === 'paused') {
-          showPausedOptionsModal(id);
-        } else if (id === 'ganjil_genap' && action === 'in_progress') {
-          showModal('Mulai Ulang?', 'Kamu memiliki sesi Tes Ganjil Genap yang belum selesai. Memulai ulang akan menghapus jawaban sebelumnya.', () => startSection(id), 'Mulai Ulang');
-        } else {
-          startSection(id);
-        }
+        const id = el.getAttribute('data-section');
+        const ps = pausedSessionsCache && pausedSessionsCache[id];
+        const ss = getSectionStatus(id);
+        if (ps && ss === 'paused') { showPausedOptionsModal(id); return; }
+        startSection(id);
       });
     });
-    
-    const resetBtn = document.getElementById('resetAllBtn');
-    if (resetBtn) resetBtn.addEventListener('click', () => {
-      showModal(
-        'Reset Semua Progress?',
-        'Semua skor di leaderboard dan progress lokal kamu akan dihapus permanen. Aksi ini tidak bisa dibatalkan.',
-        async () => {
-          const resetBtn = document.getElementById('resetAllBtn');
-          if (resetBtn) { resetBtn.textContent = '⏳ Menghapus...'; resetBtn.disabled = true; }
-          await deleteAllScores();
-          localStorage.removeItem(STORAGE_KEY);
-          state = defaultState();
-          pausedSessionsCache = {};
-          render();
-        }
-      );
-    });
-    
-    // Leaderboard widget: tab switching
-    document.querySelectorAll('#lbWidget .lb-tab').forEach(el => {
-      el.addEventListener('click', () => {
-        state.lbTab = el.dataset.tab;
-        saveState();
-        // Update active class on all tabs
-        document.querySelectorAll('#lbWidget .lb-tab').forEach(t => {
-          t.classList.toggle('active', t.dataset.tab === state.lbTab);
-        });
-        renderHomeLbContent();
+
+    // Load leaderboard async
+    try {
+      const lb = await fetchLeaderboard();
+      const lbEl = document.getElementById('lbContent');
+      if (!lbEl) return;
+      if (!lb || lb.length === 0) {
+        lbEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:13px">Belum ada data leaderboard.</div>`;
+        return;
+      }
+      // Aggregate per user (avg of best across sections)
+      const byUser = {};
+      lb.forEach(row => {
+        const uid = row.user_id;
+        if (!byUser[uid]) byUser[uid] = {
+          user_id: uid,
+          username: (row.users && row.users.username) || '',
+          display_name: (row.users && row.users.display_name) || (row.users && row.users.username) || '?',
+          scores: [],
+          sectionDoneCount: 0,
+        };
+        byUser[uid].scores.push(row.score);
       });
-    });
-    
-    // Load leaderboard content
-    renderHomeLbContent();
-    
-    // Auto-resume: jika ada session ditunda, munculkan modal
-    if (!window._autoResumeChecked && Object.keys(pausedSessionsCache).length > 0) {
+      const aggList = Object.values(byUser).map(u => ({
+        ...u,
+        avg: Math.round(u.scores.reduce((a,b)=>a+b,0) / u.scores.length),
+        done: u.scores.length,
+      })).sort((a,b) => b.avg - a.avg).slice(0, 5);
+
+      lbEl.innerHTML = aggList.map((u, i) => {
+        const rankCls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+        const isMe = currentUser && u.user_id === currentUser.id;
+        return `
+          <div class="lb-row ${rankCls}${isMe?' me':''}">
+            <div class="rk">${i+1}</div>
+            <div class="nm">
+              <strong>${escapeHtml(u.display_name)}${isMe?'<span style="margin-left:6px;color:var(--accent);font-size:11px;font-family:var(--font-mono)">&middot; kamu</span>':''}</strong>
+              <small>${u.done} section selesai</small>
+            </div>
+            <div class="sc">${u.avg}%</div>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      console.error('lb fetch err', e);
+      const lbEl = document.getElementById('lbContent');
+      if (lbEl) lbEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:13px">Gagal memuat leaderboard.</div>`;
+    }
+
+    // Auto-resume modal kalau ada paused session
+    if (!window._autoResumeChecked && Object.keys(pausedSessionsCache || {}).length > 0) {
       window._autoResumeChecked = true;
       const ids = Object.keys(pausedSessionsCache);
       setTimeout(() => showPausedOptionsModal(ids[0]), 300);
-    } else if (!window._onboardingChecked) {
-      window._onboardingChecked = true;
-      setTimeout(() => maybeShowOnboarding(), 300);
     }
   }
 
-  function renderBundleSelect() {
+  // ---------- PACKET SELECT ----------
+  function renderPacketSelect() {
     const sectionId = state.activeSection;
     const section = QUIZ_DATA[sectionId];
+    if (!section) { state.view = 'home'; render(); return; }
     const bundleIds = getBundleIds(sectionId);
+    if (!bundleIds.length) { startSection(sectionId); return; }
+    const color = catColor(sectionId);
+    const glyph = catGlyph(sectionId);
 
-    const doneBundles = bundleIds.filter(bid => getSectionStatus(bid) === 'done').length;
-    const totalBundles = bundleIds.length;
-    const firstBundle = QUIZ_DATA[bundleIds[0]];
-    const numQ = firstBundle && firstBundle.questions ? firstBundle.questions.length : 25;
-    const timeMin = firstBundle ? Math.round(firstBundle.duration / 60) : 30;
+    const packets = bundleIds.map((bid, idx) => {
+      const bundle = QUIZ_DATA[bid] || {};
+      const st = getSectionStatus(bid);
+      const sc = state.scores[bid];
+      const best = sc ? (sc.bestScore || sc.score || 0) : 0;
+      const numQ = (bundle.questions || []).length;
+      const durMin = Math.round((bundle.duration || 1800) / 60);
+      const ps = pausedSessionsCache && pausedSessionsCache[bid];
+      const answered = ps ? Object.keys(ps.answers || {}).length
+                        : (state.answers[bid] ? Object.keys(state.answers[bid]).length : 0);
+      const attempts = sc && sc.history ? sc.history.length : 0;
+      return { id: bid, num: idx + 1, status: st, bestScore: best, questions: numQ, durMin, answered, attempts };
+    });
 
-    const cardsHtml = bundleIds.map(bid => {
-      const bundle = QUIZ_DATA[bid];
-      if (!bundle) return '';
-      const status = getSectionStatus(bid);
-      const score = state.scores[bid];
+    // Default filter = 'all'
+    let filter = window._pktFilter || 'all';
+    function pktMatch(p) {
+      if (filter === 'done') return p.status === 'done';
+      if (filter === 'todo') return p.status !== 'done';
+      return true;
+    }
 
-      let badge = '<span class="badge badge-pending">Belum mulai</span>';
-      let actionLabel = 'Mulai';
-      let extraInfo = '';
+    const doneCount = packets.filter(p => p.status === 'done').length;
+    const scores = packets.filter(p => p.bestScore > 0).map(p => p.bestScore);
+    const avgBest = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0) / scores.length) : 0;
+    const ringPct = packets.length ? Math.round((doneCount / packets.length) * 100) : 0;
 
-      if (status === 'paused') {
-        badge = '<span class="badge badge-paused">⏸ Ditunda</span>';
-        actionLabel = '🔁 Opsi';
-        const ps = pausedSessionsCache[bid];
-        const remaining = ps ? fmtTime(ps.time_remaining_seconds) : '—';
-        const answered = Object.keys(state.answers[bid] || {}).length;
-        extraInfo = `<div style="font-size:12px;color:var(--text-muted)">Sisa <strong>${remaining}</strong> · ${answered}/${bundle.questions ? bundle.questions.length : numQ} soal</div>`;
-      } else if (status === 'in_progress') {
-        badge = '<span class="badge badge-progress">Sedang berjalan</span>';
-        actionLabel = 'Lanjutkan';
-        const answered = Object.keys(state.answers[bid] || {}).length;
-        const bundleNumQ2 = bundle && bundle.questions ? bundle.questions.length : 25;
-        const pct = Math.round((answered/bundleNumQ2)*100);
-        extraInfo = `<div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-          <div style="font-size:12px;color:var(--text-muted)">${answered}/${bundleNumQ2} soal terjawab</div>`;
-      } else if (status === 'done') {
-        const best = score ? (score.bestScore || score.score) : 0;
-        badge = `<span class="badge badge-done">Terbaik ${best}%</span>`;
-        actionLabel = 'Lihat Hasil';
-      }
+    function statusLabel(p) {
+      if (p.status === 'done') return { text: 'Terbaik ' + p.bestScore + '%', cls: 'done' };
+      if (p.status === 'in_progress') return { text: 'Sedang berjalan', cls: 'progress' };
+      if (p.status === 'paused') return { text: '⏸ Ditunda', cls: 'paused' };
+      return { text: 'Belum mulai', cls: 'pending' };
+    }
+    function actionLabel(p) {
+      if (p.status === 'done') return 'Ulangi';
+      if (p.status === 'in_progress' || p.status === 'paused') return 'Lanjutkan &rarr;';
+      return 'Mulai &rarr;';
+    }
 
+    function renderHero() {
       return `
-        <div class="card section-card" data-bundle="${bid}" data-action="${status}" data-section="${sectionId}">
-          <div class="section-card-header">
-            <h3>${bundle.title}</h3>
-            ${badge}
-          </div>
-          <div class="section-meta">
-            <span>📝 ${bundle.questions ? bundle.questions.length : numQ} soal</span>
-            <span>⏱ ${Math.round(bundle.duration/60)} menit</span>
-          </div>
-          ${extraInfo}
-          <button class="btn btn-sm">${actionLabel}</button>
-        </div>
-      `;
-    }).join('');
-
-    app.innerHTML = `
-      <div class="container">
-        <div style="margin-bottom:20px">
-          <button class="btn btn-secondary btn-sm" id="backToHomeBtn">← Kembali</button>
-        </div>
-        <div class="status-bar" style="margin-bottom:20px">
-          <div class="status-bar-left">
-            <h2>${section.title}</h2>
-          </div>
-          <div class="status-bar-center">
-            <div class="progress-pill">
-              ${doneBundles} dari ${totalBundles} paket selesai
-              <div class="mini-progress">
-                <div class="mini-progress-fill" style="width:${totalBundles > 0 ? Math.round((doneBundles/totalBundles)*100) : 0}%"></div>
-              </div>
+        <section class="pkt-hero" style="--cat-color:${color}">
+          <div class="pkt-hero-left">
+            <div class="eyebrow accent">${escapeHtml(section.tagline || section.title)}</div>
+            <h2 class="h-display pkt-hero-h2">
+              ${escapeHtml(section.title)}<br>
+              <em>&mdash; pilih paket latihanmu.</em>
+            </h2>
+            <p>
+              Setiap paket berisi <strong style="color:var(--ink)">${(packets[0]||{}).questions || 25} soal</strong>
+              dengan batas waktu <strong style="color:var(--ink)">${(packets[0]||{}).durMin || 30} menit</strong>.
+              Kerjakan berurutan atau langsung pilih paket yang ingin dilatih ulang.
+            </p>
+            <div class="pkt-filter" id="pktFilter">
+              <button class="btn sm ${filter==='all'?'primary':'ghost'}" data-f="all">Semua (${packets.length})</button>
+              <button class="btn sm ${filter==='todo'?'primary':'ghost'}" data-f="todo">Belum selesai</button>
+              <button class="btn sm ${filter==='done'?'primary':'ghost'}" data-f="done">Selesai (${doneCount})</button>
             </div>
           </div>
-        </div>
-        <div class="section-grid-header">
-          <h3>Pilih Paket</h3>
-          <span class="hint">Setiap paket ${numQ} soal · ${timeMin} menit</span>
-          <button type="button" class="btn-info-link" onclick="showSectionInstructions('${sectionId}')">&#x2139;&#xFE0F; Cara Mengerjakan</button>
-        </div>
-        <div class="section-grid">${cardsHtml}</div>
-      </div>
-    `;
+          <div class="pkt-ring-wrap" style="display:flex;flex-direction:column;align-items:center;gap:var(--s-20)">
+            <div class="ring" style="--pct:${ringPct};width:160px;height:160px">
+              <div class="v">
+                <div class="n" style="font-size:40px">${ringPct}%</div>
+                <div class="l">Selesai</div>
+              </div>
+            </div>
+            <div class="pkt-ring-meta">
+              <div class="pkt-stat"><span class="pkt-stat-n">${doneCount}</span><span class="pkt-stat-l">Selesai</span></div>
+              <div class="pkt-stat"><span class="pkt-stat-n">${packets.length - doneCount}</span><span class="pkt-stat-l">Sisa</span></div>
+              ${avgBest > 0 ? `<div class="pkt-stat"><span class="pkt-stat-n" style="color:var(--ok)">${avgBest}%</span><span class="pkt-stat-l">Rata-rata</span></div>` : ''}
+            </div>
+          </div>
+        </section>
+      `;
+    }
 
-    document.getElementById('backToHomeBtn').addEventListener('click', () => {
-      state.view = 'home';
-      saveState();
-      render();
-    });
+    function renderGrid() {
+      const filtered = packets.filter(pktMatch);
+      if (!filtered.length) {
+        return `<div style="text-align:center;padding:var(--s-52);color:var(--ink-3)">Tidak ada paket yang cocok dengan filter.</div>`;
+      }
+      return `<div class="pkt-grid">${filtered.map(p => {
+        const sl = statusLabel(p);
+        const bar = p.bestScore > 0 ? p.bestScore : 0;
+        const scColor = p.bestScore >= 70 ? 'var(--ok)' : p.bestScore >= 50 ? 'var(--warn)' : 'var(--danger)';
+        return `
+          <article class="pkt-card pkt-card--${p.status}" style="--cat-color:${color}">
+            <div class="pkt-card-top">
+              <div class="pkt-num" style="color:${color}">Paket ${String(p.num).padStart(2,'0')}</div>
+              <span class="pkt-badge pkt-badge--${sl.cls}">${sl.text}</span>
+            </div>
+            <div class="pkt-card-meta">
+              <span>${p.questions} soal</span><span>&middot;</span>
+              <span>${p.durMin} menit</span>
+              ${p.attempts > 0 ? '<span>&middot;</span><span>' + p.attempts + '× percobaan</span>' : ''}
+            </div>
+            ${bar > 0 ? `<div class="pkt-bar"><div class="pkt-bar-fill" style="width:${bar}%"></div></div>` : ''}
+            <div class="pkt-card-foot">
+              ${p.bestScore > 0
+                ? '<div class="pkt-score-row"><span class="pkt-score-num" style="color:' + scColor + '">' + p.bestScore + '%</span><span class="pkt-score-lbl">terbaik</span></div>'
+                : '<div></div>'}
+              <button class="btn ${p.status==='not_started'?'ghost':'primary'} sm" data-pkt="${p.id}">${actionLabel(p)}</button>
+            </div>
+          </article>
+        `;
+      }).join('')}</div>`;
+    }
 
-    document.querySelectorAll('[data-bundle]').forEach(el => {
-      el.addEventListener('click', () => {
-        const bid = el.dataset.bundle;
-        const action = el.dataset.action;
-        if (action === 'done') {
-          state.view = 'result';
-          state.activeSection = bid;
-          saveState();
-          render();
-        } else if (action === 'paused') {
-          showPausedOptionsModal(bid);
-        } else {
+    function paint() {
+      app.innerHTML = `
+        <div class="pkt-shell">
+          ${renderHero()}
+          ${renderGrid()}
+        </div>
+      `;
+      wire();
+    }
+
+    function wire() {
+      document.querySelectorAll('#pktFilter [data-f]').forEach(b => {
+        b.addEventListener('click', () => {
+          window._pktFilter = b.getAttribute('data-f');
+          renderPacketSelect();
+        });
+      });
+      document.querySelectorAll('[data-pkt]').forEach(el => {
+        el.addEventListener('click', () => {
+          const bid = el.getAttribute('data-pkt');
+          const ps = pausedSessionsCache && pausedSessionsCache[bid];
+          const ss = getSectionStatus(bid);
+          if (ps && ss === 'paused') { showPausedOptionsModal(bid); return; }
           startSection(bid);
-        }
+        });
       });
-    });
+    }
+
+    paint();
   }
 
-  async function renderHomeLbContent() {
-    const content = document.getElementById('lbWidgetContent');
-    if (!content) return;
-    
-    const sections = getOrderedSections();
-    const scores = await fetchLeaderboard();
-    
-    if (scores === null) {
-      content.innerHTML = '<div class="lb-empty">Gagal memuat leaderboard.</div>';
-      return;
-    }
-    
-    if (scores.length === 0) {
-      content.innerHTML = '<div class="lb-empty">Belum ada skor. Jadilah yang pertama!</div>';
-      return;
-    }
-    
-    const byUser = {};
-    scores.forEach(s => {
-      if (!s.users) return;
-      const uid = s.user_id;
-      if (!byUser[uid]) {
-        byUser[uid] = {
-          user_id: uid,
-          username: s.users.username,
-          display_name: s.users.display_name || s.users.username,
-          sections: {},
-        };
-      }
-      // Petakan bundle ID (verbal__paket_1) ke parent ID (verbal) untuk leaderboard
-      const parentId = s.section_id.includes('__') ? s.section_id.split('__')[0] : s.section_id;
-      const cur = byUser[uid].sections[parentId];
-      if (cur === undefined || s.score > cur) {
-        byUser[uid].sections[parentId] = s.score;
-      }
-    });
+  // Keep old name as alias so existing code still works
+  function renderBundleSelect() { return renderPacketSelect(); }
 
-    let rows;
-    if (state.lbTab === 'total') {
-      rows = Object.values(byUser).map(u => {
-        const sectionScores = sections.map(s => u.sections[s.id]).filter(v => v !== undefined);
-        const avg = sectionScores.length > 0
-          ? Math.round(sectionScores.reduce((a, b) => a + b, 0) / sectionScores.length)
-          : 0;
-        return {
-          ...u,
-          score: avg,
-          completed: sectionScores.length,
-          totalSections: sections.length,
-        };
-      }).filter(u => u.completed > 0)
-        .sort((a, b) => b.score - a.score || b.completed - a.completed);
-      
-      content.innerHTML = `
-        <div class="lb-widget-scroll">
-          <table class="lb-table">
-            <thead><tr><th>Rank</th><th>Nama</th><th style="text-align:center">Done</th><th style="text-align:right">Skor</th></tr></thead>
-            <tbody>
-              ${rows.length === 0 ? '<tr><td colspan="4" class="lb-empty">Belum ada skor.</td></tr>' :
-              rows.map((u, i) => {
-                const rank = i + 1;
-                const isMe = currentUser && u.user_id === currentUser.id;
-                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
-                return `<tr class="${isMe ? 'current-user' : ''}">
-                  <td class="lb-rank lb-rank-${rank <= 3 ? rank : ''}">${medal}</td>
-                  <td>${escapeHtml(u.display_name)}${isMe ? ' <span style="color:var(--text-muted)">(kamu)</span>' : ''}</td>
-                  <td style="text-align:center">${u.completed}/${u.totalSections}</td>
-                  <td class="lb-score">${u.score}%</td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
-    } else {
-      rows = Object.values(byUser)
-        .filter(u => u.sections[state.lbTab] !== undefined)
-        .map(u => ({ ...u, score: u.sections[state.lbTab] }))
-        .sort((a, b) => b.score - a.score);
-      
-      if (rows.length === 0) {
-        content.innerHTML = '<div class="lb-empty">Belum ada skor di section ini.</div>';
-        return;
-      }
-      
-      content.innerHTML = `
-        <div class="lb-widget-scroll">
-          <table class="lb-table">
-            <thead><tr><th>Rank</th><th>Nama</th><th style="text-align:right">Skor</th></tr></thead>
-            <tbody>
-              ${rows.map((u, i) => {
-                const rank = i + 1;
-                const isMe = currentUser && u.user_id === currentUser.id;
-                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
-                return `<tr class="${isMe ? 'current-user' : ''}">
-                  <td class="lb-rank lb-rank-${rank <= 3 ? rank : ''}">${medal}</td>
-                  <td>${escapeHtml(u.display_name)}${isMe ? ' <span style="color:var(--text-muted)">(kamu)</span>' : ''}</td>
-                  <td class="lb-score">${u.score}%</td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
-  }
-  
-  function getSectionStatus(id) {
-    if (QUIZ_DATA[id] && QUIZ_DATA[id].isBundled) return getBundleStatus(id);
-    if (state.completedAt[id]) return 'done';
-    if (pausedSessionsCache[id]) return 'paused';
-    if (state.startedAt[id]) return 'in_progress';
-    if (id === 'ganjil_genap' && state.ganjilGenap && state.ganjilGenap.startedAt) return 'in_progress';
-    // selisih_angka tidak punya status in_progress — selalu mulai fresh
-    // selisih_huruf tidak punya status in_progress — selalu mulai fresh
-    return 'pending';
-  }
-
-  function startSection(id) {
-    if (id === 'ganjil_genap') { startGanjilGenap(); return; }
-    if (id === 'selisih_angka') { startSelisihAngka(); return; }
-    if (id === 'selisih_huruf') { startSelisihHuruf(); return; }
-    if (QUIZ_DATA[id] && QUIZ_DATA[id].isBundled) {
-      state.activeSection = id;
-      state.view = 'bundle_select';
-      saveState();
-      render();
-      return;
-    }
-    state.activeSection = id;
-    state.view = 'quiz';
-    
-    if (!state.startedAt[id]) {
-      state.currentIndex = 0;
-      state.startedAt[id] = Date.now();
-      state.remainingTime[id] = QUIZ_DATA[id].duration;
-      if (!state.answers[id]) state.answers[id] = {};
-    }
-    
-    saveState();
-    render();
-  }
-  
+  // ---------- QUIZ ----------
+  let _quizKeyHandler = null;
   function renderQuiz() {
-    if (state.activeSection === 'ganjil_genap') { renderGanjilGenap(); return; }
-    if (state.activeSection === 'selisih_angka') { renderSelisihAngka(); return; }
-    if (state.activeSection === 'selisih_huruf') { renderSelisihHuruf(); return; }
-    const section = getSection(state.activeSection);
-    const questions = section.questions;
-    const idx = state.currentIndex;
-    const q = questions[idx];
-    const answers = state.answers[state.activeSection] || {};
-    const userAns = answers[q.number];
-    
-    let optionsHtml = '';
-    if (section.type === 'visual') {
-      ['A','B','C','D','E'].forEach(letter => {
-        optionsHtml += `
-          <div class="option ${userAns === letter ? 'selected' : ''}" data-letter="${letter}">
-            <div class="option-letter">${letter}</div>
-            <div class="option-text">Pilihan ${letter}</div>
-          </div>
-        `;
-      });
-    } else {
-      Object.entries(q.options).forEach(([letter, text]) => {
-        optionsHtml += `
-          <div class="option ${userAns === letter ? 'selected' : ''}" data-letter="${letter}">
-            <div class="option-letter">${letter}</div>
-            <div class="option-text">${escapeHtml(text)}</div>
-          </div>
-        `;
-      });
-    }
-    
-    let questionHtml = '';
-    if (section.type === 'visual') {
-      questionHtml = `
-        <div class="text-muted mb-3">Lihat gambar di bawah ini, lalu pilih jawaban yang tepat.</div>
-        <img src="data:image/jpeg;base64,${q.image_b64}" class="question-image" alt="Soal ${q.number}">
-      `;
-    } else {
-      questionHtml = formatQuestionText(q.question);
-    }
-    
-    const gridHtml = questions.map((qq, i) => {
-      const ans = answers[qq.number];
-      const cls = i === idx ? 'current' : (ans ? 'answered' : '');
-      return `<div class="q-num ${cls}" data-idx="${i}">${qq.number}</div>`;
-    }).join('');
-    
-    app.innerHTML = `
-      <div class="card">
-        <div class="quiz-header">
-          <div class="quiz-title">${section.title}</div>
-          <div class="timer" id="timer" role="timer" aria-label="Sisa waktu pengerjaan soal">⏱ ${fmtTime(state.remainingTime[state.activeSection] || 0)}</div>
-        </div>
-        <div class="quiz-progress">Soal ${idx + 1} dari ${questions.length} · Nomor ${q.number}</div>
-        ${questionHtml}
-        <div class="options" id="options">${optionsHtml}</div>
-        <div class="nav-buttons">
-          <button class="btn btn-secondary" id="prevBtn" ${idx === 0 ? 'disabled' : ''}>← Sebelumnya</button>
-          <div style="display:flex; gap:10px">
-            ${idx === questions.length - 1
-              ? '<button class="btn btn-danger" id="finishBtn">Selesai &amp; Submit</button>'
-              : '<button class="btn" id="nextBtn">Selanjutnya →</button>'}
-          </div>
-        </div>
-      </div>
-      
-      <div class="card mt-4">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-          <strong>Navigasi soal</strong>
-          <button class="btn btn-secondary btn-sm" id="backHomeBtn">← Kembali ke Home</button>
-        </div>
-        <div class="text-muted" style="font-size:13px">Kotak orange terang = sudah dijawab. Klik nomor untuk pindah.</div>
-        <div class="question-grid">${gridHtml}</div>
-      </div>
-    `;
-    
-    document.querySelectorAll('.option').forEach(el => {
-      el.addEventListener('click', () => {
-        const letter = el.dataset.letter;
-        if (!state.answers[state.activeSection]) state.answers[state.activeSection] = {};
-        state.answers[state.activeSection][q.number] = letter;
-        saveState();
-        renderQuiz();
-      });
-    });
-    
-    const prevBtn = document.getElementById('prevBtn');
-    if (prevBtn) prevBtn.addEventListener('click', () => {
-      state.currentIndex = Math.max(0, idx - 1);
-      saveState(); renderQuiz();
-    });
-    
-    const nextBtn = document.getElementById('nextBtn');
-    if (nextBtn) nextBtn.addEventListener('click', () => {
-      state.currentIndex = Math.min(questions.length - 1, idx + 1);
-      saveState(); renderQuiz();
-    });
-    
-    const finishBtn = document.getElementById('finishBtn');
-    if (finishBtn) finishBtn.addEventListener('click', () => {
-      const answered = Object.keys(state.answers[state.activeSection] || {}).length;
-      const total = questions.length;
-      const msg = answered < total
-        ? `Kamu baru jawab ${answered} dari ${total} soal. Yakin mau submit?`
-        : `Semua soal sudah dijawab. Submit jawaban?`;
-      showModal('Submit Section?', msg, () => finishSection(), 'Submit');
-    });
-    
-    document.getElementById('backHomeBtn').addEventListener('click', () => {
-      showPauseModal();
-    });
-    
-    document.querySelectorAll('.q-num').forEach(el => {
-      el.addEventListener('click', () => {
-        state.currentIndex = parseInt(el.dataset.idx);
-        saveState(); renderQuiz();
-      });
-    });
-    
-    if (!timerInterval) startTimer();
-  }
+    const sectionId = state.activeSection;
+    const section = QUIZ_DATA[sectionId];
+    if (!section) { state.view = 'home'; render(); return; }
+    const questions = section.questions || [];
+    const total = questions.length;
+    if (!total) { state.view = 'home'; render(); return; }
+    if (typeof state.currentIndex !== 'number') state.currentIndex = 0;
+    if (state.currentIndex >= total) state.currentIndex = total - 1;
+    if (state.currentIndex < 0) state.currentIndex = 0;
+    if (!state.answers[sectionId]) state.answers[sectionId] = {};
+    if (!state.flagged) state.flagged = {};
+    if (!state.flagged[sectionId]) state.flagged[sectionId] = {};
 
-  function startTimer() {
+    if (!state.startedAt) state.startedAt = {};
+    if (!state.startedAt[sectionId]) state.startedAt[sectionId] = Date.now();
+
+    if (typeof state.remainingTime[sectionId] !== 'number') {
+      state.remainingTime[sectionId] = section.duration || 1800;
+    }
+    const totalSec = section.duration || 1800;
+    const color = catColor(sectionId);
+    const glyph = catGlyph(sectionId);
+
+    function paint() {
+      const idx = state.currentIndex;
+      const q = questions[idx];
+      const userAns = state.answers[sectionId][q.number];
+      const answeredCount = Object.keys(state.answers[sectionId]).length;
+      const flagCount = Object.keys(state.flagged[sectionId]).length;
+      const progressPct = total ? Math.round((answeredCount / total) * 100) : 0;
+      const remaining = state.remainingTime[sectionId];
+      const ringPct = Math.round((remaining / totalSec) * 100);
+      const ringC = remaining <= 60 ? 'var(--danger)' : remaining <= 300 ? 'var(--warn)' : 'var(--ok)';
+
+      // Question content (text or image)
+      let promptLabel = section.prompt || ('Pilih jawaban paling tepat');
+      let questionHtml = '';
+      if (q.image_b64) {
+        questionHtml = `<img src="data:image/jpeg;base64,${q.image_b64}" class="question-image" alt="Soal ${q.number}" style="max-width:100%;height:auto;border-radius:12px;display:block;margin:0 auto var(--s-32)">`;
+      } else {
+        questionHtml = `${escapeHtml(q.question || q.text || '')}`;
+      }
+
+      // Options
+      const opts = q.options || [];
+      const optsHtml = opts.map((o, i) => {
+        const sel = userAns === i ? ' selected' : '';
+        const letter = String.fromCharCode(65 + i);
+        return `
+          <button class="opt${sel}" data-opt="${i}" role="radio" aria-checked="${userAns === i}">
+            <span class="l">${letter}</span>
+            <span>${escapeHtml(o)}</span>
+            <span class="k">${i + 1}</span>
+          </button>
+        `;
+      }).join('');
+
+      // Navigator grid
+      const gridHtml = questions.map((qq, i) => {
+        const isCur = i === idx;
+        const isFlag = state.flagged[sectionId][qq.number];
+        const isDone = state.answers[sectionId][qq.number] !== undefined;
+        const cls = isCur ? 'cur' : isFlag ? 'flag' : isDone ? 'done' : '';
+        return `<button class="q ${cls}" data-jump="${i}">${qq.number}</button>`;
+      }).join('');
+
+      app.innerHTML = `
+        <main class="quiz-shell">
+          <aside class="quiz-rail">
+            <div class="timer-ring" id="timerRing" style="--pct:${ringPct};--ring-c:${ringC}">
+              <span class="v" id="timer">${fmtTime(remaining)}</span>
+            </div>
+            <div class="timer-lbl">Sisa</div>
+            <div class="divider"></div>
+            <button class="rail-btn ${state.flagged[sectionId][q.number] ? 'active' : ''}" id="flagBtn" title="Tandai &middot; F">&#x2691;</button>
+            <button class="rail-btn" id="noteBtn" title="Catatan">&#x270E;</button>
+            <button class="rail-btn alert" id="pauseBtn" title="Tunda &amp; Keluar">&#x23F8;</button>
+          </aside>
+
+          <section class="quiz-main">
+            <div class="quiz-meta">
+              <span>${escapeHtml(section.title)} &middot; <strong>Soal ${idx + 1} / ${total}</strong></span>
+              <span class="sec-tag">${escapeHtml(section.type || 'Latihan').toUpperCase()}</span>
+            </div>
+            <div class="quiz-progress"><i style="width:${progressPct}%"></i></div>
+            <div class="quiz-prompt">${escapeHtml(promptLabel)}</div>
+            <h1 class="quiz-question h-display">${questionHtml}</h1>
+            <div class="opts" id="quizOptions" role="radiogroup" aria-label="Pilihan jawaban">${optsHtml}</div>
+            <div class="quiz-actions">
+              <div class="hint">
+                <kbd>1</kbd>&ndash;<kbd>${opts.length}</kbd> pilih &middot;
+                <kbd>&larr;</kbd> <kbd>&rarr;</kbd> navigasi &middot;
+                <kbd>F</kbd> tandai
+              </div>
+              <div style="display:flex;gap:10px">
+                <button class="btn ghost" id="prevBtn" ${idx === 0 ? 'disabled' : ''}>&larr; Sebelumnya</button>
+                ${idx === total - 1
+                  ? `<button class="btn primary" id="finishBtn2">Selesai &amp; Submit &rarr;</button>`
+                  : `<button class="btn primary" id="nextBtn">Selanjutnya &rarr;</button>`}
+              </div>
+            </div>
+          </section>
+
+          <aside class="quiz-side">
+            <h4>
+              <span>Navigasi Soal</span>
+              <span style="color:var(--ink-2);font-family:var(--font-sans);text-transform:none;letter-spacing:0;font-weight:500">${idx + 1} / ${total}</span>
+            </h4>
+            <div class="q-grid">${gridHtml}</div>
+            <div class="legend">
+              <div class="l"><span class="sw" style="background:var(--accent)"></span> Soal saat ini</div>
+              <div class="l"><span class="sw" style="background:rgba(52,211,153,0.4)"></span> Sudah dijawab (${answeredCount})</div>
+              <div class="l"><span class="sw" style="background:rgba(245,158,11,0.4)"></span> Ditandai (${flagCount})</div>
+              <div class="l"><span class="sw" style="background:rgba(255,255,255,0.08)"></span> Belum dijawab</div>
+            </div>
+            <button class="btn primary" id="finishBtn" style="margin-top:4px;width:100%">Selesai &amp; Submit</button>
+          </aside>
+        </main>
+      `;
+
+      wire();
+    }
+
+    function wire() {
+      document.querySelectorAll('[data-opt]').forEach(b => {
+        b.addEventListener('click', () => {
+          const i = parseInt(b.getAttribute('data-opt'), 10);
+          selectAnswer(i);
+        });
+      });
+      document.querySelectorAll('[data-jump]').forEach(b => {
+        b.addEventListener('click', () => {
+          state.currentIndex = parseInt(b.getAttribute('data-jump'), 10);
+          saveState(); paint();
+        });
+      });
+      const prev = document.getElementById('prevBtn');
+      if (prev) prev.addEventListener('click', () => goPrev());
+      const next = document.getElementById('nextBtn');
+      if (next) next.addEventListener('click', () => goNext());
+      const flagBtn = document.getElementById('flagBtn');
+      if (flagBtn) flagBtn.addEventListener('click', () => toggleFlag());
+      const noteBtn = document.getElementById('noteBtn');
+      if (noteBtn) noteBtn.addEventListener('click', () => showToastNew('Catatan belum aktif'));
+      const pauseBtn = document.getElementById('pauseBtn');
+      if (pauseBtn) pauseBtn.addEventListener('click', () => {
+        if (typeof pauseSection === 'function') pauseSection();
+        else { state.view = 'home'; saveState(); render(); }
+      });
+      const finishBtns = ['finishBtn', 'finishBtn2'];
+      finishBtns.forEach(id => {
+        const b = document.getElementById(id);
+        if (b) b.addEventListener('click', () => finishSection());
+      });
+    }
+
+    function selectAnswer(i) {
+      const q = questions[state.currentIndex];
+      state.answers[sectionId][q.number] = i;
+      saveState();
+      showToastNew('Jawaban tersimpan: ' + String.fromCharCode(65 + i));
+      paint();
+    }
+    function goNext() {
+      if (state.currentIndex < total - 1) {
+        state.currentIndex++;
+        saveState(); paint();
+      } else {
+        finishSection();
+      }
+    }
+    function goPrev() {
+      if (state.currentIndex > 0) {
+        state.currentIndex--;
+        saveState(); paint();
+      }
+    }
+    function toggleFlag() {
+      const q = questions[state.currentIndex];
+      if (state.flagged[sectionId][q.number]) {
+        delete state.flagged[sectionId][q.number];
+        showToastNew('⚑ Tanda dihapus');
+      } else {
+        state.flagged[sectionId][q.number] = true;
+        showToastNew('⚑ Soal ditandai');
+      }
+      saveState(); paint();
+    }
+
+    // Keyboard
+    if (_quizKeyHandler) document.removeEventListener('keydown', _quizKeyHandler);
+    _quizKeyHandler = function (e) {
+      if (state.view !== 'quiz') {
+        document.removeEventListener('keydown', _quizKeyHandler); _quizKeyHandler = null; return;
+      }
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      const q = questions[state.currentIndex];
+      const optsLen = (q.options || []).length;
+      const k = e.key;
+      if (/^[1-9]$/.test(k)) {
+        const i = parseInt(k, 10) - 1;
+        if (i >= 0 && i < optsLen) { e.preventDefault(); selectAnswer(i); }
+      } else if (k === 'ArrowRight' || k === 'Enter') { e.preventDefault(); goNext(); }
+      else if (k === 'ArrowLeft') { e.preventDefault(); goPrev(); }
+      else if (k.toLowerCase() === 'f') { e.preventDefault(); toggleFlag(); }
+    };
+    document.addEventListener('keydown', _quizKeyHandler);
+
+    // Timer
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
-      state.remainingTime[state.activeSection]--;
-      if (state.remainingTime[state.activeSection] <= 0) {
-        state.remainingTime[state.activeSection] = 0;
-        clearInterval(timerInterval);
-        timerInterval = null;
-        finishSection(true);
-        return;
+      if (state.view !== 'quiz') { clearInterval(timerInterval); timerInterval = null; return; }
+      state.remainingTime[sectionId]--;
+      const remaining = state.remainingTime[sectionId];
+      const tEl = document.getElementById('timer');
+      const ring = document.getElementById('timerRing');
+      if (tEl) tEl.textContent = fmtTime(remaining);
+      if (ring) {
+        const pct = Math.round((remaining / totalSec) * 100);
+        const c = remaining <= 60 ? 'var(--danger)' : remaining <= 300 ? 'var(--warn)' : 'var(--ok)';
+        ring.style.setProperty('--pct', pct);
+        ring.style.setProperty('--ring-c', c);
       }
-      saveState();
-      const t = document.getElementById('timer');
-      if (t) {
-        const rem = state.remainingTime[state.activeSection];
-        t.textContent = '⏱ ' + fmtTime(rem);
-        t.className = 'timer';
-        if (rem <= 60) t.classList.add('danger');
-        else if (rem <= 300) t.classList.add('warning');
-      }
+      if (remaining <= 0) { clearInterval(timerInterval); timerInterval = null; finishSection(true); return; }
+      if (remaining % 10 === 0) saveState();
     }, 1000);
-  }
-  
-  async function finishSection(timedOut) {
-    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-    
-    const sectionId = state.activeSection;
-    const section = getSection(sectionId);
-    const userAns = state.answers[sectionId] || {};
-    let correct = 0;
-    section.questions.forEach(q => {
-      if (userAns[q.number] === q.answer) correct++;
-    });
-    const score = Math.round((correct / section.questions.length) * 100);
-    
-    const startedTs = state.startedAt[sectionId] || Date.now();
-    const duration = Math.round((Date.now() - startedTs) / 1000);
-    
-    // Riwayat percobaan
-    const prev = state.scores[sectionId];
-    const history = (prev && prev.history) ? [...prev.history] : [];
-    history.push({
-      correct,
-      total: section.questions.length,
-      score,
-      timedOut: !!timedOut,
-      duration,
-      completedAt: Date.now(),
-    });
-    
-    const best = Math.max(...history.map(h => h.score));
-    const _prevBestForCelebrate = (prev && prev.bestScore) ? prev.bestScore : 0;
 
-    state.scores[sectionId] = {
-      correct,
-      total: section.questions.length,
-      score,
-      bestScore: best,
-      timedOut: !!timedOut,
-      duration,
-      history,
-    };
-    state.completedAt[sectionId] = Date.now();
-    try { recordStreakActivity(); } catch (e) {}
-    setTimeout(() => maybeCelebrateScore(sectionId, score, _prevBestForCelebrate), 350);
-    state.view = 'result';
-    saveState();
-    render();
-    
-    // Hapus paused session kalau ada
-    if (currentUser && isLeaderboardEnabled()) {
-      deletePausedSession(sectionId);
-      delete pausedSessionsCache[sectionId];
-    }
-
-    // Submit ke Supabase di background (hanya best score)
-    if (currentUser && isLeaderboardEnabled()) {
-      submitScoreToSupabase(sectionId, {
-        score: best, correct, total: section.questions.length,
-        duration, timedOut: !!timedOut,
-      }).then(() => {
-        if (state.view === 'result' && state.activeSection === sectionId) {
-          render();
-        }
-      });
-    }
+    paint();
   }
-  
+
+  // ---------- RESULT ----------
   function renderResult() {
     if (state.activeSection === 'ganjil_genap') { renderGanjilGenapResult(); return; }
     if (state.activeSection === 'selisih_angka') { renderSelisihAngkaResult(); return; }
     if (state.activeSection === 'selisih_huruf') { renderSelisihHurufResult(); return; }
+
     const section = getSection(state.activeSection);
     const sectionId = state.activeSection;
     const userAns = state.answers[sectionId] || {};
-    const score = state.scores[sectionId];
-    
-    let correct = 0, wrong = 0, skipped = 0;
-    section.questions.forEach(q => {
-      if (!userAns[q.number]) skipped++;
-      else if (userAns[q.number] === q.answer) correct++;
-      else wrong++;
-    });
-    
-    // Submit status indicator
-    let submitStatusHtml = '';
-    if (currentUser && isLeaderboardEnabled()) {
-      const ss = state.submitStatus[sectionId];
-      if (ss === 'pending') submitStatusHtml = '<div class="submit-status pending">⏳ Mengirim skor ke leaderboard...</div>';
-      else if (ss === 'success') submitStatusHtml = '<div class="submit-status success">✓ Skor masuk leaderboard</div>';
-      else if (ss === 'error') submitStatusHtml = '<div class="submit-status error">✗ Gagal kirim. Klik Coba Lagi di bawah.</div>';
-    }
-    
-    const gridHtml = section.questions.map(q => {
-      const ans = userAns[q.number];
-      const isCorrect = ans === q.answer;
-      const cls = !ans ? 'skipped' : (isCorrect ? 'correct' : 'wrong');
-      const qnumAttr = ans ? ` data-qnum="${q.number}"` : '';
-      return `<div class="q-num ${cls}"${qnumAttr}>${q.number}</div>`;
-    }).join('');
+    const sc = state.scores[sectionId];
+    if (!section || !sc) { state.view = 'home'; render(); return; }
 
-    const answeredQuestions = section.questions.filter(q => userAns[q.number]);
-    const answeredNums = answeredQuestions.map(q => q.number);
-    const reviewData = {};
-    answeredQuestions.forEach(q => {
-      const ans = userAns[q.number];
-      const isCorrect = ans === q.answer;
-      const status = isCorrect ? 'correct' : 'wrong';
-      const statusLabel = isCorrect ? 'Benar' : 'Salah';
-      let optionsHtml = '';
-      if (section.type === 'visual') {
-        optionsHtml = `<img src="data:image/jpeg;base64,${q.image_b64}" class="question-image" alt="Soal ${q.number}">`;
-        ['A','B','C','D','E'].forEach(letter => {
-          let cls = '';
-          if (letter === q.answer) cls += ' is-correct';
-          if (letter === ans && !isCorrect) cls += ' user-wrong';
-          if (letter === ans && isCorrect) cls += ' user-correct';
-          optionsHtml += `<div class="review-option${cls}"><div class="option-letter">${letter}</div><div class="option-text">Pilihan ${letter}${letter === q.answer ? ' ✓ (Jawaban Benar)' : ''}${letter === ans && !isCorrect ? ' ✗ (Jawabanmu)' : ''}</div></div>`;
-        });
-      } else {
-        optionsHtml = '<div class="review-options">';
-        Object.entries(q.options).forEach(([letter, text]) => {
-          let cls = '';
-          let suffix = '';
-          if (letter === q.answer) { cls += ' is-correct'; suffix += ' ✓ (Jawaban Benar)'; }
-          if (letter === ans && !isCorrect) { cls += ' user-wrong'; suffix += ' ✗ (Jawabanmu)'; }
-          if (letter === ans && isCorrect) { cls += ' user-correct'; }
-          optionsHtml += `<div class="review-option${cls}"><div class="option-letter">${letter}</div><div class="option-text">${escapeHtml(text)}<strong>${suffix}</strong></div></div>`;
-        });
-        optionsHtml += '</div>';
-      }
-      reviewData[q.number] = {
-        status,
-        html: `<div class="review-item ${status}"><div class="review-header"><div class="review-num">Soal ${q.number}</div><div class="review-status ${status}">${statusLabel}</div></div>${section.type !== 'visual' ? `<div class="review-question">${escapeHtml(q.question)}</div>` : ''}${optionsHtml}${q.explanation ? `<div class="explanation"><strong>Pembahasan:</strong> ${escapeHtml(q.explanation)}</div>` : ''}</div>`
-      };
+    let right = 0, wrong = 0, skip = 0;
+    const perQ = (section.questions || []).map(q => {
+      const a = userAns[q.number];
+      if (a === undefined) { skip++; return { n: q.number, status: 'skip' }; }
+      if (a === q.answer) { right++; return { n: q.number, status: 'right' }; }
+      wrong++;
+      return { n: q.number, status: 'wrong' };
     });
-    
-    const retrySubmitBtn = state.submitStatus[sectionId] === 'error' ? 
-      '<button class="btn btn-sm btn-secondary" id="retrySubmitBtn">Coba Kirim Ulang</button>' : '';
-    
+    const totalQ = (section.questions || []).length;
+    const score = sc.score || (totalQ ? Math.round((right / totalQ) * 100) : 0);
+    const prevBest = sc.bestScore || 0;
+    const isNewBest = score >= prevBest && (sc.history || []).length > 0;
+    const ringC = score >= 70 ? 'var(--ok)' : score >= 50 ? 'var(--warn)' : 'var(--danger)';
+
+    let verdict, verb;
+    if (score >= 85) { verdict = 'Luar biasa!'; verb = 'Skormu masuk top 10%.'; }
+    else if (score >= 70) { verdict = 'Bagus.'; verb = 'Sudah aman di atas ambang batas.'; }
+    else if (score >= 50) { verdict = 'Lumayan.'; verb = 'Coba ulang untuk konsolidasi.'; }
+    else { verdict = 'Belum.'; verb = 'Jangan menyerah &mdash; ulangi paket ini.'; }
+
+    const durSec = sc.duration || 0;
+    const durLabel = sc.timedOut ? 'Waktu habis'
+      : (durSec ? (Math.floor(durSec/60) + ' mnt ' + (durSec%60) + ' dtk') : '—');
+    const totalSec = section.duration || 1800;
+
+    // Recommend next section
+    const sections = getOrderedSections();
+    const recommendation = sections.find(s => s.id !== sectionId && getSectionStatus(s.id) === 'paused')
+                        || sections.find(s => s.id !== sectionId && getSectionStatus(s.id) === 'not_started')
+                        || sections.find(s => s.id !== sectionId)
+                        || sections[0];
+
     app.innerHTML = `
-      <div class="card">
-        <div class="result-summary">
-          <div class="score-circle" style="background: ${score.score >= 70 ? 'var(--success-light)' : score.score >= 50 ? 'var(--primary-light)' : 'var(--danger-light)'}; color: ${score.score >= 70 ? 'var(--success)' : score.score >= 50 ? 'var(--primary)' : 'var(--danger)'}">
-            <div class="score-num">${score.score}%</div>
-            <div class="score-label">Skor</div>
-          </div>
-          <div class="quiz-title">${section.title}</div>
-          ${score.timedOut ? '<p class="text-muted mt-3" style="color:var(--danger)">⏰ Waktu habis. Section di-submit otomatis.</p>' : ''}
-          ${submitStatusHtml}
-          ${retrySubmitBtn}
-          <div class="result-stats">
-            <div class="stat">
-              <div class="stat-num" style="color: var(--success)">${correct}</div>
-              <div class="stat-label">Benar</div>
-            </div>
-            <div class="stat">
-              <div class="stat-num" style="color: var(--danger)">${wrong}</div>
-              <div class="stat-label">Salah</div>
-            </div>
-            <div class="stat">
-              <div class="stat-num" style="color: var(--warning)">${skipped}</div>
-              <div class="stat-label">Tidak Dijawab</div>
+      <main class="result-shell">
+        <section class="result-hero">
+          <div class="result-ring" style="--pct:${score};--ring-c:${ringC}">
+            <div class="v">
+              <div class="n">${score}<span style="font-size:32px;color:var(--ink-3)">%</span></div>
+              <div class="l">Skor Akhir</div>
             </div>
           </div>
-          <div class="nav-buttons" style="border-top:none; padding-top: 0; justify-content: center; margin-top: 24px">
-            <button class="btn btn-secondary" id="backToHomeBtn">← Home</button>
-            ${isLeaderboardEnabled() && currentUser ? '<button class="btn btn-secondary" id="viewLbBtn">🏆 Leaderboard</button>' : ''}
-            <button class="btn" id="retrySectionBtn">Coba Lagi</button>
+          <div class="result-summary">
+            <div class="eyebrow">Hasil &middot; ${escapeHtml(section.title)}</div>
+            <h2 class="h-display">
+              ${verdict}<br>
+              <em>${verb}</em>
+            </h2>
+            <p>
+              Dari <strong style="color:var(--ink)">${totalQ} soal</strong>,
+              kamu menjawab benar <strong style="color:var(--ok)">${right}</strong>,
+              salah <strong style="color:var(--danger)">${wrong}</strong>,
+              dan dilewati <strong style="color:var(--ink-2)">${skip}</strong>.
+              ${isNewBest && score > prevBest ? ' &#x1F389; Ini <strong style="color:var(--gold)">skor terbaik baru</strong> kamu!' : ''}
+            </p>
+            <div class="result-actions">
+              <button class="btn primary lg" id="resultRetry">Ulangi Paket Ini &#x21BB;</button>
+              <button class="btn ghost lg" id="resultHome">Pilih Kategori Lain</button>
+            </div>
           </div>
-        </div>
-      </div>
-      
-      <div class="card mt-4">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-          <strong>Ringkasan Soal</strong>
-        </div>
-        <div class="text-muted" style="font-size:13px; margin-bottom:12px">Hijau = benar, Merah = salah, Abu-abu = tidak dijawab</div>
-        <div class="question-grid">${gridHtml}</div>
-      </div>
+        </section>
 
-      ${answeredQuestions.length > 0 ? `
-      <div class="card mt-4" id="reviewCard">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px">
-          <h3 style="margin:0">Pembahasan Jawaban</h3>
-          <span style="font-size:12px; color:var(--text-muted)">Klik nomor soal untuk melihat pembahasan</span>
-        </div>
-        <div id="reviewPanel" style="min-height:80px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:14px; padding:24px 0">
-          ☝\ Klik nomor soal di atas untuk melihat pembahasannya
-        </div>
-      </div>` : ''}
+        <section class="stat-grid">
+          <div class="stat">
+            <div class="lbl">Benar</div>
+            <div class="v" style="color:var(--ok)">${right}</div>
+            <div class="delta">&uarr; ${totalQ ? Math.round((right/totalQ)*100) : 0}% akurasi</div>
+          </div>
+          <div class="stat">
+            <div class="lbl">Salah</div>
+            <div class="v" style="color:var(--danger)">${wrong}</div>
+            <div class="delta down">${wrong > 0 ? 'Cek review di bawah' : 'Bersih!'}</div>
+          </div>
+          <div class="stat">
+            <div class="lbl">Dilewati</div>
+            <div class="v" style="color:var(--ink-2)">${skip}</div>
+            <div class="delta" style="color:var(--ink-3)">${skip > 0 ? 'Coba kelola waktu' : '—'}</div>
+          </div>
+          <div class="stat">
+            <div class="lbl">Durasi</div>
+            <div class="v" style="font-size:28px">${durLabel}</div>
+            <div class="delta" style="color:var(--ink-3)">dari ${Math.round(totalSec/60)} mnt</div>
+          </div>
+        </section>
+
+        <section class="review-card">
+          <h3 class="h-display">Tinjau jawaban per soal.</h3>
+          <div class="review-grid">
+            ${perQ.map(p => `<div class="qq ${p.status}" title="Soal ${p.n} &mdash; ${p.status}">${p.n}</div>`).join('')}
+          </div>
+          <div class="review-legend">
+            <div class="l"><span class="sw" style="background:rgba(52,211,153,0.5)"></span> Benar (${right})</div>
+            <div class="l"><span class="sw" style="background:rgba(248,113,113,0.5)"></span> Salah (${wrong})</div>
+            <div class="l"><span class="sw" style="background:rgba(255,255,255,0.1)"></span> Dilewati (${skip})</div>
+          </div>
+        </section>
+
+        ${recommendation ? `
+        <section class="next-card">
+          <div>
+            <div class="eyebrow">Rekomendasi selanjutnya</div>
+            <h3 class="h-display">
+              Lanjut ke <em>${escapeHtml(recommendation.title)}</em>?
+            </h3>
+            <p>${escapeHtml(recommendation.tagline || ('Latihan ' + recommendation.title.toLowerCase() + '.'))}</p>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn primary lg" id="resultNext">Mulai ${escapeHtml(recommendation.title)} &rarr;</button>
+          </div>
+        </section>
+        ` : ''}
+      </main>
     `;
-    
-    document.getElementById('backToHomeBtn').addEventListener('click', () => {
-      state.view = 'home';
-      saveState();
-      render();
+
+    const retry = document.getElementById('resultRetry');
+    if (retry) retry.addEventListener('click', () => {
+      state.answers[sectionId] = {};
+      if (state.flagged && state.flagged[sectionId]) state.flagged[sectionId] = {};
+      state.currentIndex = 0;
+      state.remainingTime[sectionId] = section.duration || 1800;
+      state.view = 'quiz'; saveState(); render();
     });
-    
-    const viewLbBtn = document.getElementById('viewLbBtn');
-    if (viewLbBtn) viewLbBtn.addEventListener('click', () => {
-      state.lbTab = sectionId;
-      state.view = 'home';
-      saveState();
-      render();
+    const home = document.getElementById('resultHome');
+    if (home) home.addEventListener('click', () => {
+      state.view = 'home'; saveState(); render();
     });
-    
-    document.getElementById('retrySectionBtn').addEventListener('click', () => {
-      showModal(
-        'Coba Section Ini Lagi?',
-        'Jawaban dan timer untuk section ini akan di-reset. Skor sebelumnya tetap di leaderboard.',
-        () => {
-          delete state.answers[state.activeSection];
-          delete state.startedAt[state.activeSection];
-          delete state.remainingTime[state.activeSection];
-          delete state.completedAt[state.activeSection];
-          delete state.submitStatus[state.activeSection];
-          saveState();
-          startSection(state.activeSection);
-        },
-        'Reset & Mulai'
-      );
-    });
-    
-    const retrySubmit = document.getElementById('retrySubmitBtn');
-    if (retrySubmit) retrySubmit.addEventListener('click', async () => {
-      retrySubmit.disabled = true;
-      retrySubmit.textContent = 'Mengirim...';
-      await submitScoreToSupabase(sectionId, {
-        score: score.bestScore || score.score, correct, total: section.questions.length,
-        duration: score.duration || 0, timedOut: score.timedOut,
-      });
-      render();
-    });
-    // ---- Review panel: show one question at a time ----
-    function showReview(qnum) {
-      document.querySelectorAll('.q-num[data-qnum]').forEach(el => {
-        el.classList.toggle('selected', parseInt(el.dataset.qnum) === qnum);
-      });
-      const panel = document.getElementById('reviewPanel');
-      if (!panel) return;
-      const data = reviewData[qnum];
-      if (!data) return;
-      const idx = answeredNums.indexOf(qnum);
-      const prevNum = idx > 0 ? answeredNums[idx - 1] : null;
-      const nextNum = idx < answeredNums.length - 1 ? answeredNums[idx + 1] : null;
-      panel.style.cssText = 'display:block; padding:0';
-      panel.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:8px">
-          <button class="btn btn-sm btn-secondary" id="prevReviewBtn" ${!prevNum ? 'disabled style="opacity:0.4"' : ''}>&#8592; Sebelumnya</button>
-          <span style="font-size:13px; color:var(--text-muted)">Soal ${qnum} / ${section.questions.length}</span>
-          <button class="btn btn-sm btn-secondary" id="nextReviewBtn" ${!nextNum ? 'disabled style="opacity:0.4"' : ''}>Berikutnya &#8594;</button>
-        </div>
-        ${data.html}
-      `;
-      if (prevNum) document.getElementById('prevReviewBtn').addEventListener('click', () => showReview(prevNum));
-      if (nextNum) document.getElementById('nextReviewBtn').addEventListener('click', () => showReview(nextNum));
-      const card = document.getElementById('reviewCard');
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-    document.querySelectorAll('.q-num[data-qnum]').forEach(el => {
-      el.addEventListener('click', () => showReview(parseInt(el.dataset.qnum)));
-    });
+    const nx = document.getElementById('resultNext');
+    if (nx && recommendation) nx.addEventListener('click', () => startSection(recommendation.id));
   }
-  
-  // ============ GANJIL GENAP ============
+
+  // ---------- ONBOARDING (3-step carousel) ----------
+  const ONB_STEPS_NEW = [
+    {
+      glyph: '✦',
+      eyebrow: 'Selamat Datang · Langkah 1 / 3',
+      h: 'Pilih kategori, mulai latihan.',
+      p: 'Sembilan kategori psikotes resmi MT Transjakarta &mdash; Verbal, Numerik, Logika, Spasial, dan lainnya. Setiap kategori punya beberapa paket soal untuk dilatih berulang.',
+    },
+    {
+      glyph: '◴',
+      eyebrow: 'Selamat Datang · Langkah 2 / 3',
+      h: 'Timer otomatis, bisa ditunda.',
+      p: 'Setiap paket punya batas waktu. Kalau ada urusan mendadak, tekan ⏸ untuk menunda &mdash; progresmu tersimpan dan bisa dilanjut dari device manapun.',
+    },
+    {
+      glyph: '✧',
+      eyebrow: 'Selamat Datang · Langkah 3 / 3',
+      h: 'Naik peringkat tiap hari.',
+      p: 'Skor terbaikmu masuk leaderboard. Latihan rutin tujuh hari berturut-turut dapat bonus streak &mdash; ikon api di header akan menyala.',
+    },
+  ];
+  let _onbStep = 0;
+  let _onbKey = null;
+  function openOnboardingNew() {
+    _onbStep = 0;
+    const bg = document.getElementById('onbModal');
+    if (!bg) return;
+    bg.classList.remove('hidden');
+    paintOnb();
+    if (_onbKey) document.removeEventListener('keydown', _onbKey);
+    _onbKey = function (e) {
+      if (e.key === 'Escape') closeOnbNew();
+      else if (e.key === 'ArrowRight') { _onbStep = Math.min(ONB_STEPS_NEW.length - 1, _onbStep + 1); paintOnb(); }
+      else if (e.key === 'ArrowLeft') { _onbStep = Math.max(0, _onbStep - 1); paintOnb(); }
+    };
+    document.addEventListener('keydown', _onbKey);
+    document.getElementById('onbSkip').onclick = closeOnbNew;
+    document.getElementById('onbNext').onclick = () => {
+      if (_onbStep < ONB_STEPS_NEW.length - 1) { _onbStep++; paintOnb(); }
+      else closeOnbNew();
+    };
+    bg.onclick = (e) => { if (e.target === bg) closeOnbNew(); };
+  }
+  function paintOnb() {
+    const s = ONB_STEPS_NEW[_onbStep];
+    document.getElementById('onbGlyph').innerHTML = s.glyph;
+    document.getElementById('onbEyebrow').textContent = s.eyebrow;
+    document.getElementById('onbHeading').textContent = s.h;
+    document.getElementById('onbBody').innerHTML = s.p;
+    document.getElementById('onbDots').innerHTML = ONB_STEPS_NEW.map((_, i) => `<span class="d ${i <= _onbStep ? 'on' : ''}"></span>`).join('');
+    const nextBtn = document.getElementById('onbNext');
+    nextBtn.innerHTML = (_onbStep === ONB_STEPS_NEW.length - 1) ? 'Mulai Latihan &rarr;' : 'Lanjut &rarr;';
+  }
+  function closeOnbNew() {
+    const bg = document.getElementById('onbModal');
+    if (bg) bg.classList.add('hidden');
+    if (_onbKey) { document.removeEventListener('keydown', _onbKey); _onbKey = null; }
+    try { localStorage.setItem('onboarding_v2_seen', '1'); } catch (e) {}
+  }
+  function maybeShowOnboardingNew() {
+    try {
+      if (localStorage.getItem('onboarding_v2_seen')) return;
+      openOnboardingNew();
+    } catch (e) {}
+  }
+
+// ============ GANJIL GENAP ============
   const GG_TOTAL_ROUNDS = 20;
   const GG_ROUND_SECONDS = 60;
   const GG_BREAK_SECONDS = 10;
