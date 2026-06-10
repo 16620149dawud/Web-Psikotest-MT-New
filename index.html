@@ -2901,6 +2901,10 @@ function showModal(title, msg, onOk, okLabel) {
             <span>&#x1F3C6; Leaderboard</span>
             <span style="color:var(--ink-3);font-family:var(--font-sans);text-transform:none;letter-spacing:0;font-weight:400">Top 5</span>
           </h4>
+          <select id="lbSection" aria-label="Filter leaderboard per tes" style="width:100%;margin-bottom:10px;background:var(--bg-2);color:var(--ink);border:1px solid var(--border-2);border-radius:8px;padding:7px 10px;font-size:12px;font-family:inherit;cursor:pointer">
+            <option value="all">&#x1F30D; Semua Tes (rata-rata)</option>
+            ${sections.map(s => `<option value="${s.id}">${escapeHtml(s.title)}</option>`).join('')}
+          </select>
           <div id="lbContent"><span class="sr-only">Memuat leaderboard&hellip;</span>
             <div class="skeleton-row" style="height:36px;border-radius:8px;margin-bottom:6px;background:linear-gradient(90deg,var(--border) 25%,var(--surface-2) 50%,var(--border) 75%);background-size:200% 100%"></div>
             <div class="skeleton-row" style="height:36px;border-radius:8px;margin-bottom:6px;background:linear-gradient(90deg,var(--border) 25%,var(--surface-2) 50%,var(--border) 75%);background-size:200% 100%"></div>
@@ -2955,7 +2959,7 @@ function showModal(title, msg, onOk, okLabel) {
       });
     });
 
-    // Load leaderboard async
+    // Load leaderboard async — bisa difilter per tes lewat dropdown
     try {
       const lb = await fetchLeaderboard();
       const lbEl = document.getElementById('lbContent');
@@ -2964,39 +2968,54 @@ function showModal(title, msg, onOk, okLabel) {
         lbEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:13px">Belum ada data leaderboard.</div>`;
         return;
       }
-      // Aggregate per user (avg of best across sections)
-      const byUser = {};
-      lb.forEach(row => {
-        const uid = row.user_id;
-        if (!byUser[uid]) byUser[uid] = {
-          user_id: uid,
-          username: (row.users && row.users.username) || '',
-          display_name: (row.users && row.users.display_name) || (row.users && row.users.username) || '?',
-          scores: [],
-          sectionDoneCount: 0,
-        };
-        byUser[uid].scores.push(row.score);
-      });
-      const aggList = Object.values(byUser).map(u => ({
-        ...u,
-        avg: Math.round(u.scores.reduce((a,b)=>a+b,0) / u.scores.length),
-        done: u.scores.length,
-      })).sort((a,b) => b.avg - a.avg).slice(0, 5);
+      const lbSel = document.getElementById('lbSection');
+      function paintLb() {
+        const f = lbSel ? lbSel.value : 'all';
+        // 'verbal' juga mencakup paket bundling 'verbal__paket_N'
+        const rows = f === 'all' ? lb : lb.filter(r =>
+          r.section_id === f || (r.section_id && r.section_id.indexOf(f + '__') === 0));
+        if (!rows.length) {
+          lbEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:13px">Belum ada skor untuk tes ini.</div>`;
+          return;
+        }
+        const byUser = {};
+        rows.forEach(row => {
+          const uid = row.user_id;
+          if (!byUser[uid]) byUser[uid] = {
+            user_id: uid,
+            display_name: (row.users && row.users.display_name) || (row.users && row.users.username) || '?',
+            scores: [],
+          };
+          byUser[uid].scores.push(row.score);
+        });
+        const aggList = Object.values(byUser).map(u => ({
+          ...u,
+          avg: Math.round(u.scores.reduce((a,b)=>a+b,0) / u.scores.length),
+          best: Math.max.apply(null, u.scores),
+          done: u.scores.length,
+        })).sort((a,b) => (f === 'all' ? b.avg - a.avg : b.best - a.best)).slice(0, 5);
 
-      lbEl.innerHTML = aggList.map((u, i) => {
-        const rankCls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-        const isMe = currentUser && u.user_id === currentUser.id;
-        return `
-          <div class="lb-row ${rankCls}${isMe?' me':''}">
-            <div class="rk">${i+1}</div>
-            <div class="nm">
-              <strong>${escapeHtml(u.display_name)}${isMe?'<span style="margin-left:6px;color:var(--accent);font-size:11px;font-family:var(--font-mono)">&middot; kamu</span>':''}</strong>
-              <small>${u.done} section selesai</small>
+        lbEl.innerHTML = aggList.map((u, i) => {
+          const rankCls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+          const isMe = currentUser && u.user_id === currentUser.id;
+          const val = f === 'all' ? u.avg : u.best;
+          const sub = f === 'all'
+            ? u.done + ' section selesai'
+            : u.done + '&times; main &middot; skor terbaik';
+          return `
+            <div class="lb-row ${rankCls}${isMe?' me':''}">
+              <div class="rk">${i+1}</div>
+              <div class="nm">
+                <strong>${escapeHtml(u.display_name)}${isMe?'<span style="margin-left:6px;color:var(--accent);font-size:11px;font-family:var(--font-mono)">&middot; kamu</span>':''}</strong>
+                <small>${sub}</small>
+              </div>
+              <div class="sc">${val}%</div>
             </div>
-            <div class="sc">${u.avg}%</div>
-          </div>
-        `;
-      }).join('');
+          `;
+        }).join('');
+      }
+      if (lbSel) lbSel.addEventListener('change', paintLb);
+      paintLb();
     } catch (e) {
       console.error('lb fetch err', e);
       const lbEl = document.getElementById('lbContent');
@@ -3122,7 +3141,10 @@ function showModal(title, msg, onOk, okLabel) {
               ${p.bestScore > 0
                 ? '<div class="pkt-score-row"><span class="pkt-score-num" style="color:' + scColor + '">' + p.bestScore + '%</span><span class="pkt-score-lbl">terbaik</span></div>'
                 : '<div></div>'}
-              <button class="btn ${p.status==='not_started'?'ghost':'primary'} sm" data-pkt="${p.id}">${actionLabel(p)}</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+                ${p.status === 'done' ? `<button class="btn ghost sm" data-pkt-rev="${p.id}">&#x1F4D6; Pembahasan</button>` : ''}
+                <button class="btn ${p.status==='not_started'?'ghost':'primary'} sm" data-pkt="${p.id}">${actionLabel(p)}</button>
+              </div>
             </div>
           </article>
         `;
@@ -3153,6 +3175,17 @@ function showModal(title, msg, onOk, okLabel) {
           const ss = getSectionStatus(bid);
           if (ps && ss === 'paused') { showPausedOptionsModal(bid); return; }
           startSection(bid);
+        });
+      });
+      // Paket selesai: buka hasil + pembahasan tanpa reset jawaban
+      document.querySelectorAll('[data-pkt-rev]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const bid = el.getAttribute('data-pkt-rev');
+          state.activeSection = bid;
+          state.view = 'result';
+          saveState();
+          render();
         });
       });
     }
@@ -3473,6 +3506,9 @@ function showModal(title, msg, onOk, okLabel) {
       return { n: q.number, status: 'wrong' };
     });
     const totalQ = (section.questions || []).length;
+    // Jawaban lokal bisa kosong kalau hasil datang dari sync device lain --
+    // kalau begitu, semua pembahasan dibuka (percobaan sudah pernah terjadi)
+    const hasLocalAnswers = Object.keys(userAns).length > 0;
     const score = sc.score || (totalQ ? Math.round((right / totalQ) * 100) : 0);
     const prevBest = sc.bestScore || 0;
     const isNewBest = score >= prevBest && (sc.history || []).length > 0;
@@ -3506,7 +3542,7 @@ function showModal(title, msg, onOk, okLabel) {
             </div>
           </div>
           <div class="result-summary">
-            <div class="eyebrow">Hasil &middot; ${escapeHtml(section.title)}</div>
+            <div class="eyebrow">Hasil &middot; ${escapeHtml(section.title)}${(sc.history && sc.history.length) ? ' &middot; Percobaan ke-' + sc.history.length : ''}</div>
             <h2 class="h-display">
               ${verdict}<br>
               <em>${verb}</em>
@@ -3552,7 +3588,7 @@ function showModal(title, msg, onOk, okLabel) {
           <h3 class="h-display">Tinjau jawaban &amp; pembahasan.</h3>
           <p style="color:var(--ink-3);font-size:13px;margin-top:6px">Klik nomor soal yang sudah dikerjakan untuk melihat pembahasannya. Soal yang dilewati tidak punya pembahasan &mdash; biar adil.</p>
           <div class="review-grid">
-            ${perQ.map(p => p.status === 'skip'
+            ${perQ.map(p => (p.status === 'skip' && hasLocalAnswers)
               ? `<button class="qq skip" disabled title="Soal ${p.n} dilewati &mdash; pembahasan terkunci">${p.n}</button>`
               : `<button class="qq ${p.status}" data-rev="${p.n}" title="Soal ${p.n} &mdash; klik untuk pembahasan">${p.n}</button>`
             ).join('')}
@@ -3585,15 +3621,15 @@ function showModal(title, msg, onOk, okLabel) {
     `;
 
     // Pembahasan per soal: klik nomor di grid -> render satu soal ke panel
-    const answeredNums = perQ.filter(p => p.status !== 'skip').map(p => p.n);
+    const answeredNums = perQ.filter(p => !hasLocalAnswers || p.status !== 'skip').map(p => p.n);
     function showReview(n) {
       const q = (section.questions || []).find(x => x.number === n);
       const panel = document.getElementById('revPanel');
       if (!q || !panel) return;
       const ua = userAns[q.number];
       const correct = q.answer;
-      const status = ua === correct ? 'right' : 'wrong';
-      const statusLabel = status === 'right' ? '&#x2713; Benar' : '&#x2717; Salah';
+      const status = ua === undefined ? 'skip' : (ua === correct ? 'right' : 'wrong');
+      const statusLabel = status === 'right' ? '&#x2713; Benar' : (status === 'wrong' ? '&#x2717; Salah' : '&mdash; Tidak tercatat');
       const qText = q.question ? escapeHtml(q.question) : ('Soal ' + q.number);
       const qImage = q.image_b64 ? `<img src="data:image/jpeg;base64,${q.image_b64}" alt="Soal ${q.number}">` : '';
       const pData = getPassageData(sectionId, section.questions || []);
@@ -3607,7 +3643,7 @@ function showModal(title, msg, onOk, okLabel) {
                ${k === correct ? '<span class="tag ok">Kunci</span>' : (k === ua ? '<span class="tag you">Jawabanmu</span>' : '')}
              </div>`).join('')}</div>`
         : `<div class="qrev-answers" style="margin-top:4px">
-             <div><strong>Jawabanmu</strong><span class="ans-letter ${status === 'right' ? 'correct' : 'wrong'}">${escapeHtml(String(ua))}</span></div>
+             <div><strong>Jawabanmu</strong><span class="ans-letter ${status === 'right' ? 'correct' : (status === 'wrong' ? 'wrong' : '')}">${ua === undefined ? '&mdash;' : escapeHtml(String(ua))}</span></div>
              <div><strong>Kunci</strong><span class="ans-letter correct">${escapeHtml(String(correct))}</span></div>
            </div>`;
       const pos = answeredNums.indexOf(n);
@@ -3616,7 +3652,7 @@ function showModal(title, msg, onOk, okLabel) {
       panel.innerHTML = `
         <div class="rev-head">
           <span class="qrev-num" style="font-size:17px">Soal ${q.number}</span>
-          <span class="qrev-status" style="${status === 'right' ? 'background:rgba(52,211,153,0.16);color:var(--ok)' : 'background:rgba(248,113,113,0.16);color:var(--danger)'}">${statusLabel}</span>
+          <span class="qrev-status" style="${status === 'right' ? 'background:rgba(52,211,153,0.16);color:var(--ok)' : (status === 'wrong' ? 'background:rgba(248,113,113,0.16);color:var(--danger)' : 'background:rgba(182,194,214,0.12);color:var(--ink-2)')}">${statusLabel}</span>
         </div>
         ${passage ? `
         <details class="passage">
@@ -3754,13 +3790,18 @@ function showModal(title, msg, onOk, okLabel) {
     state.activeSection = id;
     state.view = 'quiz';
     
-    if (!state.startedAt[id]) {
+    // Paket selesai diulang dari awal; jawaban lama tetap ada untuk
+    // pembahasan sampai user benar-benar memulai ulang lewat sini
+    const isDone = !!state.completedAt[id];
+    if (isDone || !state.startedAt[id]) {
       state.currentIndex = 0;
       state.startedAt[id] = Date.now();
       state.remainingTime[id] = QUIZ_DATA[id].duration;
-      if (!state.answers[id]) state.answers[id] = {};
+      state.answers[id] = isDone ? {} : (state.answers[id] || {});
+      if (state.flagged && state.flagged[id]) state.flagged[id] = {};
+      if (isDone) delete state.completedAt[id];
     }
-    
+
     saveState();
     render();
   }
