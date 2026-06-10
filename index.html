@@ -1515,6 +1515,204 @@ button{
 
 
 .hidden{display:none !important;}
+
+/* ====== LEGACY COMPAT (Ganjil Genap / Selisih Angka / Selisih Huruf) ====== */
+:root{
+  --primary: var(--accent);
+  --primary-light: var(--accent-soft);
+  --primary-medium: var(--accent);
+  --text: var(--ink);
+  --text-muted: var(--ink-3);
+  --success: var(--ok);
+  --success-light: rgba(52,211,153,0.15);
+  --danger-light: rgba(248,113,113,0.15);
+  --info: #60A5FA;
+  --info-light: rgba(96,165,250,0.15);
+  --warning: var(--warn);
+  --warning-light: rgba(245,158,11,0.15);
+}
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.45;} }
+.card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 860px;
+  margin: 24px auto;
+}
+.card + .card { margin-top: 12px; }
+.btn-primary{ background: var(--accent); color: #06121F; border-color: transparent; }
+.btn-primary:hover{ background: var(--accent-deep); color: #fff; }
+.btn-secondary{ background: transparent; color: var(--ink-2); border: 1px solid var(--border-2); }
+.btn-secondary:hover{ background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.text-muted{ color: var(--ink-3); }
+.mb-4{ margin-bottom: 16px; }
+.mt-4{ margin-top: 16px; }
+
+.gg-header{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+.gg-round-badge{ font-size:15px; font-weight:700; background:var(--primary-light); color:var(--primary); padding:6px 14px; border-radius:999px; }
+.gg-timer{ font-family:'Menlo','Monaco',monospace; font-size:22px; font-weight:700; color:var(--primary); }
+.gg-timer.warning{ color:var(--warning); }
+.gg-timer.danger{ color:var(--danger); animation:pulse 1s infinite; }
+.gg-break{ text-align:center; padding:40px 20px; }
+.gg-break h2{ font-size:24px; margin-bottom:8px; color:var(--ink); }
+.gg-break-countdown{ font-size:48px; font-weight:700; color:var(--primary); margin:16px 0; }
+.gg-break-dots{ display:flex; justify-content:center; gap:8px; margin-top:24px; }
+.gg-break-dot{ width:12px; height:12px; border-radius:50%; background:var(--border-2); transition:background .3s; }
+.gg-break-dot.active{ background:var(--primary); }
+.gg-break-dot.done{ background:var(--success); }
+.gg-questions{ display:flex; flex-direction:column; gap:6px; margin-top:12px; max-height:65vh; overflow-y:auto; }
+.gg-question{ display:flex; align-items:center; gap:8px; padding:8px 12px; border:1.5px solid var(--border); border-radius:8px; background:var(--surface-2); font-size:15px; color:var(--ink); }
+.gg-question.answered{ border-color:var(--primary); background:var(--accent-soft); }
+.gg-qnum{ font-weight:700; color:var(--text-muted); min-width:28px; font-size:13px; }
+.gg-qexpr{ font-weight:600; font-family:'Menlo','Monaco',monospace; font-size:16px; white-space:nowrap; }
+.gg-qbtns{ display:flex; gap:4px; flex-shrink:0; }
+.gg-qbtn{ width:38px; height:38px; border-radius:50%; border:2px solid var(--border-2); font-size:16px; font-weight:700; cursor:pointer; transition:all .1s; background:var(--surface); color:var(--ink-2); font-family:inherit; display:flex; align-items:center; justify-content:center; padding:0; line-height:1; }
+.gg-qbtn:hover{ transform:scale(1.1); }
+.gg-qbtn-0{ color:var(--info); border-color:var(--info); }
+.gg-qbtn-0:hover{ background:var(--info-light); }
+.gg-qbtn-1{ color:var(--primary); border-color:var(--primary); }
+.gg-qbtn-1:hover{ background:var(--primary-light); }
+.gg-qbtn.selected{ color:#06121F; border-width:2px; }
+.gg-qbtn.selected.gg-qbtn-0{ background:var(--info); border-color:var(--info); }
+.gg-qbtn.selected.gg-qbtn-1{ background:var(--primary); border-color:var(--primary); }
+.gg-qbtn:disabled{ opacity:.4; cursor:default; transform:none; }
+.gg-qbtn.selected:disabled{ opacity:1; }
+.gg-empty{ text-align:center; padding:20px; color:var(--text-muted); font-style:italic; }
+.gg-result-grid{ display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.gg-stat-card{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; }
+.gg-stat-card h3{ font-size:16px; font-weight:700; margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid var(--border-2); color:var(--ink); }
+.gg-stat-item{ display:flex; justify-content:space-between; padding:8px 0; font-size:14px; }
+.gg-stat-item .label{ color:var(--ink-3); }
+.gg-stat-item .value{ font-weight:600; color:var(--ink); }
+.gg-chart-container{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; position:relative; }
+.gg-chart-container h3{ font-size:16px; font-weight:700; margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid var(--border-2); color:var(--ink); }
+.gg-chart-container canvas{ display:block; max-width:100%; }
+@media (max-width:640px){
+  .gg-questions{ gap:4px; }
+  .gg-question{ padding:6px 10px; font-size:14px; gap:6px; }
+  .gg-qbtn{ width:34px; height:34px; font-size:14px; }
+  .gg-qexpr{ font-size:14px; }
+  .gg-result-grid{ grid-template-columns:1fr; }
+}
+
+.sa-container{ display:flex; flex-direction:column; align-items:center; padding:8px 0 20px; }
+.sa-header{ display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+.sa-boxes{ display:flex; flex-direction:column; gap:14px; margin:28px 0 32px; }
+.sa-box{ width:140px; height:80px; display:flex; align-items:center; justify-content:center; font-size:42px; font-weight:700; border:2.5px solid var(--border-2); border-radius:14px; cursor:pointer; transition:transform .12s,border-color .12s,background .12s,color .12s; background:var(--surface-2); color:var(--ink); user-select:none; font-family:'Menlo','Monaco',monospace; }
+.sa-box:hover{ border-color:var(--primary); background:var(--primary-light); color:var(--primary); transform:scale(1.05); }
+.sa-box.flash-correct{ background:var(--success-light); border-color:var(--success); color:var(--success); transform:scale(1.05); pointer-events:none; }
+.sa-box.flash-wrong{ background:var(--danger-light); border-color:var(--danger); color:var(--danger); pointer-events:none; }
+.sa-score-row{ display:flex; gap:24px; justify-content:center; margin-top:4px; }
+.sa-score-item{ text-align:center; }
+.sa-score-num{ font-size:22px; font-weight:700; color:var(--ink); }
+.sa-score-label{ font-size:11px; color:var(--text-muted); font-weight:500; margin-top:2px; }
+.sa-correct{ color:var(--success); }
+.sa-wrong{ color:var(--danger); }
+.sa-total{ color:var(--primary); }
+
+.sh-container{ display:flex; flex-direction:column; align-items:center; padding:8px 0 20px; }
+.sh-header{ display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+.sh-boxes{ display:flex; flex-direction:row; gap:20px; margin:28px 0 32px; justify-content:center; }
+.sh-box{ width:90px; height:90px; display:flex; align-items:center; justify-content:center; font-size:44px; font-weight:700; border:2.5px solid var(--border-2); border-radius:14px; cursor:pointer; transition:transform .12s,border-color .12s,background .12s,color .12s; background:var(--surface-2); color:var(--ink); user-select:none; font-family:'Menlo','Monaco',monospace; }
+.sh-box:hover{ border-color:var(--primary); background:var(--primary-light); color:var(--primary); transform:scale(1.05); }
+.sh-box.flash-correct{ background:var(--success-light); border-color:var(--success); color:var(--success); transform:scale(1.05); pointer-events:none; }
+.sh-box.flash-wrong{ background:var(--danger-light); border-color:var(--danger); color:var(--danger); pointer-events:none; }
+
+/* legacy utils dipakai layar GG/SA/SH */
+.container{ max-width:1100px; margin:0 auto; padding:24px; }
+.btn-ghost{ background:transparent; color:var(--ink-3); border:none; }
+.btn-ghost:hover{ color:var(--ink); background:var(--surface-2); }
+.btn-sm{ padding:6px 12px; font-size:12px; }
+.btn-lg{ padding:12px 20px; font-size:15px; }
+.text-center{ text-align:center; }
+.mt-2{ margin-top:8px; } .mt-3{ margin-top:12px; }
+.mb-3{ margin-bottom:12px; }
+.quiz-title{ font-size:20px; font-weight:600; color:var(--ink); }
+.nav-buttons{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:24px; padding-top:20px; border-top:1px solid var(--border); }
+.card .result-summary{ text-align:center; padding:28px 20px; }
+.score-circle{ width:140px; height:140px; border-radius:50%; margin:0 auto 20px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--accent-soft); color:var(--accent); }
+.score-num{ font-size:36px; font-weight:700; line-height:1; }
+.score-label{ font-size:12px; margin-top:4px; opacity:.8; }
+.hist-pill{ display:inline-flex; align-items:center; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; line-height:1.6; }
+.hist-green{ background:var(--success-light); color:var(--success); }
+.hist-amber{ background:var(--warning-light); color:var(--warning); }
+.hist-red{ background:var(--danger-light); color:var(--danger); }
+.submit-status{ display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:6px; font-size:13px; font-weight:600; margin-top:12px; }
+.submit-status.pending{ background:var(--warning-light); color:var(--warn); }
+.submit-status.success{ background:var(--success-light); color:var(--ok); }
+.submit-status.error{ background:var(--danger-light); color:var(--danger); }
+
+/* legacy modal + toast + settings (dipakai showModal/showInfoModal/settings/celebration) */
+.modal-bg{ position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(4,8,16,0.7); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; backdrop-filter:blur(4px); }
+.modal{ background:var(--surface); border:1px solid var(--border-2); border-radius:14px; padding:28px; max-width:420px; width:100%; color:var(--ink); }
+.modal h2{ margin-bottom:12px; font-size:20px; color:var(--ink); }
+.modal p{ color:var(--ink-3); margin-bottom:20px; }
+.modal .actions{ display:flex; gap:10px; }
+.modal .actions .btn{ flex:1; }
+.btn-danger{ background:var(--danger); color:#fff; border-color:transparent; }
+.btn-danger:hover{ background:#DC2626; }
+.info-modal{ max-width:480px; max-height:86vh; overflow-y:auto; text-align:left; }
+.info-modal-body{ color:var(--ink-2); margin-bottom:20px; line-height:1.65; font-size:14px; }
+.info-modal-body ul{ padding-left:20px; margin:8px 0 14px; }
+.info-modal-body li{ margin-bottom:9px; }
+.info-modal-body p{ margin:0; color:var(--ink-3); }
+.celebration-toast{ position:fixed; top:24px; left:50%; transform:translateX(-50%) translateY(-20px); background:linear-gradient(135deg, var(--ok), #15803D); color:#fff; padding:14px 22px; border-radius:12px; font-weight:700; font-size:14px; box-shadow:0 8px 24px rgba(0,0,0,0.35); z-index:2000; opacity:0; pointer-events:none; transition:opacity .3s ease, transform .3s ease; display:flex; align-items:center; gap:8px; }
+.celebration-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+.confetti-container{ position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:1999; overflow:hidden; }
+.confetti-piece{ position:absolute; width:8px; height:14px; top:-20px; opacity:.95; animation:confetti-fall 2.4s linear forwards; }
+@keyframes confetti-fall{ 0%{ transform:translateY(-20px) rotate(0deg); opacity:1; } 100%{ transform:translateY(100vh) rotate(720deg); opacity:0; } }
+.settings-form{ display:flex; flex-direction:column; gap:14px; }
+.settings-form label{ font-size:12px; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; display:block; }
+.settings-form input{ width:100%; padding:10px 12px; border:1px solid var(--border-2); border-radius:8px; font-size:14px; background:var(--bg-2); color:var(--ink); font-family:inherit; }
+.settings-form input:focus{ border-color:var(--accent); outline:none; }
+.settings-form .form-section{ padding:14px; border:1px solid var(--border); border-radius:10px; background:var(--bg-2); }
+.settings-form h3{ font-size:13px; margin-bottom:10px; color:var(--accent); font-weight:700; }
+.settings-status{ font-size:13px; margin-top:8px; padding:8px 12px; border-radius:6px; display:none; }
+.settings-status.show{ display:block; }
+.settings-status.ok{ background:var(--success-light); color:var(--ok); }
+.settings-status.err{ background:var(--danger-light); color:var(--danger); }
+@media (prefers-reduced-motion: reduce){ .confetti-piece{ animation:none; display:none; } }
+
+/* per-question review (pembahasan) — panel mode */
+.review-grid button.qq{font-family:inherit;border:1px solid transparent;cursor:pointer;transition:transform .12s, box-shadow .12s, border-color .12s;}
+.review-grid button.qq[data-rev]:hover{transform:scale(1.12);border-color:var(--accent);}
+.review-grid button.qq.active{outline:2px solid var(--accent);outline-offset:2px;box-shadow:0 0 0 4px var(--accent-soft);}
+.review-grid button.qq.skip{cursor:not-allowed;opacity:.45;}
+.rev-panel{margin-top:var(--s-20, 20px);border:1px solid var(--border);border-radius:14px;background:var(--bg-2, #0E1626);padding:20px;display:flex;flex-direction:column;gap:16px;}
+.rev-placeholder{color:var(--ink-3);font-size:14px;text-align:center;padding:14px 0;}
+.rev-head{display:flex;align-items:center;gap:12px;}
+.rev-opts{display:flex;flex-direction:column;gap:8px;}
+.rev-opt{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface);font-size:14px;color:var(--ink-2);}
+.rev-opt .l{font-weight:700;min-width:20px;color:var(--ink-3);}
+.rev-opt.key{border-color:var(--ok);background:rgba(52,211,153,0.08);}
+.rev-opt.key .l{color:var(--ok);}
+.rev-opt.yours-wrong{border-color:var(--danger);background:rgba(248,113,113,0.08);}
+.rev-opt.yours-wrong .l{color:var(--danger);}
+.rev-opt .tag{margin-left:auto;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0;}
+.rev-opt .tag.ok{background:rgba(52,211,153,0.16);color:var(--ok);}
+.rev-opt .tag.you{background:rgba(248,113,113,0.16);color:var(--danger);}
+.rev-nav{display:flex;justify-content:space-between;gap:10px;margin-top:4px;}
+.passage{border:1px solid var(--border-2);border-left:3px solid var(--accent);border-radius:10px;background:var(--surface-2, #182340);margin-bottom:var(--s-20, 20px);overflow:hidden;}
+.passage > summary{list-style:none;cursor:pointer;padding:12px 16px;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:8px;}
+.passage > summary::-webkit-details-marker{display:none;}
+.passage > summary::after{content:'\25BC';margin-left:auto;font-size:10px;color:var(--ink-3);transition:transform .2s;}
+.passage[open] > summary::after{transform:rotate(180deg);}
+.passage > p{margin:0;padding:0 16px 16px;color:var(--ink);font-size:14px;line-height:1.75;text-align:justify;}
+.qrev-num{font-weight:700;color:var(--ink-2, #B6C2D6);}
+.qrev-status{font-weight:600;font-size:12px;padding:3px 10px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase;}
+.qrev-question{color:var(--ink, #ECF2FA);font-size:15px;line-height:1.5;white-space:pre-wrap;}
+.qrev-question img{max-width:100%;border-radius:8px;margin-top:8px;}
+.qrev-answers{display:flex;flex-wrap:wrap;gap:18px;}
+.qrev-answers > div{font-size:13px;}
+.qrev-answers strong{display:block;color:var(--ink-3, #6B7B97);font-weight:600;font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;}
+.qrev-answers .ans-letter{font-weight:700;font-size:15px;color:var(--ink, #ECF2FA);}
+.qrev-answers .ans-letter.correct{color:var(--ok, #34D399);}
+.qrev-answers .ans-letter.wrong{color:var(--danger, #F87171);}
+.qrev-explain{background:var(--surface, #131C30);border-left:3px solid var(--accent, #38BDF8);padding:10px 14px;border-radius:0 8px 8px 0;}
+.qrev-explain .eyebrow{margin-bottom:4px;}
+.qrev-explain p{margin:0;color:var(--ink, #ECF2FA);font-size:13px;line-height:1.55;}
+
 </style>
 </head>
 <body>
@@ -2967,7 +3165,37 @@ function showModal(title, msg, onOk, okLabel) {
 
   // ---------- QUIZ ----------
   let _quizKeyHandler = null;
+  // Teks bacaan (wacana) tersimpan menempel di explanation soal sebelum grupnya,
+  // dengan marker "Teks untuk Soal Nomor X - Y". Parse sekali per section:
+  // - map[nomor] = {label, text} untuk semua soal X..Y
+  // - cleanEx[nomor pembawa] = explanation tanpa teks bacaan yang nyangkut
+  const _passageCache = {};
+  function getPassageData(sectionId, questions) {
+    if (_passageCache[sectionId]) return _passageCache[sectionId];
+    const map = {};
+    const cleanEx = {};
+    const re = /(?:\s*Pemahaman Wacana\.[\s\S]*?)?\s*Teks untuk Soal Nomor (\d+)\s*[-–]\s*(\d+)\s*/;
+    (questions || []).forEach(q => {
+      if (typeof q.explanation !== 'string') return;
+      const m = q.explanation.match(re);
+      if (!m) return;
+      const from = parseInt(m[1], 10);
+      const to = parseInt(m[2], 10);
+      const text = q.explanation.slice(m.index + m[0].length).trim();
+      cleanEx[q.number] = q.explanation.slice(0, m.index).trim();
+      if (!text || to < from) return;
+      for (let n = from; n <= to; n++) {
+        map[n] = { label: 'Teks untuk Soal ' + from + '–' + to, text };
+      }
+    });
+    _passageCache[sectionId] = { map, cleanEx };
+    return _passageCache[sectionId];
+  }
+
   function renderQuiz() {
+    if (state.activeSection === 'ganjil_genap') { renderGanjilGenap(); return; }
+    if (state.activeSection === 'selisih_angka') { renderSelisihAngka(); return; }
+    if (state.activeSection === 'selisih_huruf') { renderSelisihHuruf(); return; }
     const sectionId = state.activeSection;
     const section = QUIZ_DATA[sectionId];
     if (!section) { state.view = 'home'; render(); return; }
@@ -3001,6 +3229,9 @@ function showModal(title, msg, onOk, okLabel) {
       const remaining = state.remainingTime[sectionId];
       const ringPct = Math.round((remaining / totalSec) * 100);
       const ringC = remaining <= 60 ? 'var(--danger)' : remaining <= 300 ? 'var(--warn)' : 'var(--ok)';
+
+      // Teks bacaan (wacana) untuk soal pemahaman teks
+      const passage = getPassageData(sectionId, questions).map[q.number];
 
       // Question content (text or image)
       let promptLabel = section.prompt || ('Pilih jawaban paling tepat');
@@ -3060,12 +3291,17 @@ function showModal(title, msg, onOk, okLabel) {
               <span class="sec-tag">${escapeHtml(section.type || 'Latihan').toUpperCase()}</span>
             </div>
             <div class="quiz-progress"><i style="width:${progressPct}%"></i></div>
+            ${passage ? `
+            <details class="passage" open>
+              <summary>&#x1F4D6; ${passage.label}</summary>
+              <p>${escapeHtml(passage.text)}</p>
+            </details>` : ''}
             <div class="quiz-prompt">${escapeHtml(promptLabel)}</div>
             <h1 class="quiz-question h-display">${questionHtml}</h1>
             <div class="opts" id="quizOptions" role="radiogroup" aria-label="Pilihan jawaban">${optsHtml}</div>
             <div class="quiz-actions">
               <div class="hint">
-                <kbd>1</kbd>&ndash;<kbd>${opts.length}</kbd> pilih &middot;
+                <kbd>1</kbd>&ndash;<kbd>${optEntries.length}</kbd> pilih &middot;
                 <kbd>&larr;</kbd> <kbd>&rarr;</kbd> navigasi &middot;
                 <kbd>F</kbd> tandai
               </div>
@@ -3188,7 +3424,6 @@ function showModal(title, msg, onOk, okLabel) {
           e.preventDefault();
           selectAnswer(letter);
         }
-      }
       } else if (k === 'ArrowRight' || k === 'Enter') { e.preventDefault(); goNext(); }
       else if (k === 'ArrowLeft') { e.preventDefault(); goPrev(); }
       else if (k.toLowerCase() === 'f') { e.preventDefault(); toggleFlag(); }
@@ -3314,14 +3549,21 @@ function showModal(title, msg, onOk, okLabel) {
         </section>
 
         <section class="review-card">
-          <h3 class="h-display">Tinjau jawaban per soal.</h3>
+          <h3 class="h-display">Tinjau jawaban &amp; pembahasan.</h3>
+          <p style="color:var(--ink-3);font-size:13px;margin-top:6px">Klik nomor soal yang sudah dikerjakan untuk melihat pembahasannya. Soal yang dilewati tidak punya pembahasan &mdash; biar adil.</p>
           <div class="review-grid">
-            ${perQ.map(p => `<div class="qq ${p.status}" title="Soal ${p.n} &mdash; ${p.status}">${p.n}</div>`).join('')}
+            ${perQ.map(p => p.status === 'skip'
+              ? `<button class="qq skip" disabled title="Soal ${p.n} dilewati &mdash; pembahasan terkunci">${p.n}</button>`
+              : `<button class="qq ${p.status}" data-rev="${p.n}" title="Soal ${p.n} &mdash; klik untuk pembahasan">${p.n}</button>`
+            ).join('')}
           </div>
           <div class="review-legend">
             <div class="l"><span class="sw" style="background:rgba(52,211,153,0.5)"></span> Benar (${right})</div>
             <div class="l"><span class="sw" style="background:rgba(248,113,113,0.5)"></span> Salah (${wrong})</div>
             <div class="l"><span class="sw" style="background:rgba(255,255,255,0.1)"></span> Dilewati (${skip})</div>
+          </div>
+          <div id="revPanel" class="rev-panel">
+            <div class="rev-placeholder">&#x1F446; Pilih nomor soal di atas untuk melihat pembahasan.</div>
           </div>
         </section>
 
@@ -3341,6 +3583,69 @@ function showModal(title, msg, onOk, okLabel) {
         ` : ''}
       </main>
     `;
+
+    // Pembahasan per soal: klik nomor di grid -> render satu soal ke panel
+    const answeredNums = perQ.filter(p => p.status !== 'skip').map(p => p.n);
+    function showReview(n) {
+      const q = (section.questions || []).find(x => x.number === n);
+      const panel = document.getElementById('revPanel');
+      if (!q || !panel) return;
+      const ua = userAns[q.number];
+      const correct = q.answer;
+      const status = ua === correct ? 'right' : 'wrong';
+      const statusLabel = status === 'right' ? '&#x2713; Benar' : '&#x2717; Salah';
+      const qText = q.question ? escapeHtml(q.question) : ('Soal ' + q.number);
+      const qImage = q.image_b64 ? `<img src="data:image/jpeg;base64,${q.image_b64}" alt="Soal ${q.number}">` : '';
+      const pData = getPassageData(sectionId, section.questions || []);
+      const passage = pData.map[q.number];
+      const exText = pData.cleanEx[q.number] !== undefined ? pData.cleanEx[q.number] : q.explanation;
+      const optsBlock = (q.options && typeof q.options === 'object' && !Array.isArray(q.options))
+        ? `<div class="rev-opts">${Object.keys(q.options).map(k => `
+             <div class="rev-opt ${k === correct ? 'key' : ''} ${k === ua && k !== correct ? 'yours-wrong' : ''}">
+               <span class="l">${k}</span>
+               <span>${escapeHtml(q.options[k])}</span>
+               ${k === correct ? '<span class="tag ok">Kunci</span>' : (k === ua ? '<span class="tag you">Jawabanmu</span>' : '')}
+             </div>`).join('')}</div>`
+        : `<div class="qrev-answers" style="margin-top:4px">
+             <div><strong>Jawabanmu</strong><span class="ans-letter ${status === 'right' ? 'correct' : 'wrong'}">${escapeHtml(String(ua))}</span></div>
+             <div><strong>Kunci</strong><span class="ans-letter correct">${escapeHtml(String(correct))}</span></div>
+           </div>`;
+      const pos = answeredNums.indexOf(n);
+      const prevN = pos > 0 ? answeredNums[pos - 1] : null;
+      const nextN = pos < answeredNums.length - 1 ? answeredNums[pos + 1] : null;
+      panel.innerHTML = `
+        <div class="rev-head">
+          <span class="qrev-num" style="font-size:17px">Soal ${q.number}</span>
+          <span class="qrev-status" style="${status === 'right' ? 'background:rgba(52,211,153,0.16);color:var(--ok)' : 'background:rgba(248,113,113,0.16);color:var(--danger)'}">${statusLabel}</span>
+        </div>
+        ${passage ? `
+        <details class="passage">
+          <summary>&#x1F4D6; ${passage.label}</summary>
+          <p>${escapeHtml(passage.text)}</p>
+        </details>` : ''}
+        <div class="qrev-question">${qText}${qImage}</div>
+        ${optsBlock}
+        <div class="qrev-explain">
+          <div class="eyebrow">Pembahasan</div>
+          <p>${exText ? escapeHtml(exText) : 'Tidak ada pembahasan untuk soal ini.'}</p>
+        </div>
+        <div class="rev-nav">
+          <button class="btn ghost" id="revPrev" ${prevN === null ? 'disabled' : ''}>&larr; Soal sebelumnya</button>
+          <button class="btn ghost" id="revNext" ${nextN === null ? 'disabled' : ''}>Soal berikutnya &rarr;</button>
+        </div>
+      `;
+      document.querySelectorAll('[data-rev]').forEach(b => {
+        b.classList.toggle('active', parseInt(b.getAttribute('data-rev'), 10) === n);
+      });
+      const pv = document.getElementById('revPrev');
+      if (pv && prevN !== null) pv.addEventListener('click', () => showReview(prevN));
+      const nx2 = document.getElementById('revNext');
+      if (nx2 && nextN !== null) nx2.addEventListener('click', () => showReview(nextN));
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    document.querySelectorAll('[data-rev]').forEach(b => {
+      b.addEventListener('click', () => showReview(parseInt(b.getAttribute('data-rev'), 10)));
+    });
 
     const retry = document.getElementById('resultRetry');
     if (retry) retry.addEventListener('click', () => {
