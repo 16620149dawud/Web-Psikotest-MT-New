@@ -3154,6 +3154,9 @@ function showModal(title, msg, onOk, okLabel) {
     function paint() {
       app.innerHTML = `
         <div class="pkt-shell">
+          <div style="margin-bottom:var(--s-12)">
+            <button class="btn ghost sm" id="pktBack">&larr; Kembali ke Beranda</button>
+          </div>
           ${renderHero()}
           ${renderGrid()}
         </div>
@@ -3162,6 +3165,10 @@ function showModal(title, msg, onOk, okLabel) {
     }
 
     function wire() {
+      const back = document.getElementById('pktBack');
+      if (back) back.addEventListener('click', () => {
+        state.view = 'home'; saveState(); render();
+      });
       document.querySelectorAll('#pktFilter [data-f]').forEach(b => {
         b.addEventListener('click', () => {
           window._pktFilter = b.getAttribute('data-f');
@@ -3532,8 +3539,14 @@ function showModal(title, msg, onOk, okLabel) {
                         || sections.find(s => s.id !== sectionId)
                         || sections[0];
 
+    // Tombol kembali: paket bundled balik ke daftar paket, lainnya ke beranda
+    const parentId = sectionId.indexOf('__') > 0 ? sectionId.split('__')[0] : null;
+
     app.innerHTML = `
       <main class="result-shell">
+        <div style="margin-bottom:var(--s-12)">
+          <button class="btn ghost sm" id="resultBack">&larr; ${parentId ? 'Kembali ke Daftar Paket' : 'Kembali ke Beranda'}</button>
+        </div>
         <section class="result-hero">
           <div class="result-ring" style="--pct:${score};--ring-c:${ringC}">
             <div class="v">
@@ -3694,6 +3707,16 @@ function showModal(title, msg, onOk, okLabel) {
     const home = document.getElementById('resultHome');
     if (home) home.addEventListener('click', () => {
       state.view = 'home'; saveState(); render();
+    });
+    const back = document.getElementById('resultBack');
+    if (back) back.addEventListener('click', () => {
+      if (parentId) {
+        state.activeSection = parentId;
+        state.view = 'packet_select';
+      } else {
+        state.view = 'home';
+      }
+      saveState(); render();
     });
     const nx = document.getElementById('resultNext');
     if (nx && recommendation) nx.addEventListener('click', () => startSection(recommendation.id));
