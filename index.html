@@ -1713,6 +1713,11 @@ button{
 .qrev-explain .eyebrow{margin-bottom:4px;}
 .qrev-explain p{margin:0;color:var(--ink, #ECF2FA);font-size:13px;line-height:1.55;}
 
+/* #app jangan dijepit .container legacy — layar redesign atur lebarnya sendiri.
+   .container 1100px hanya untuk layar legacy GG/SA/SH di dalam #app. */
+#app.container{ max-width:none; padding:0; }
+/* Login full-height dikurangi header global supaya tidak scroll sia-sia */
+.login-screen{ min-height: calc(100vh - 66px); }
 </style>
 </head>
 <body>
