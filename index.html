@@ -3047,19 +3047,42 @@ function showModal(title, msg, onOk, okLabel) {
     const color = catColor(sectionId);
     const glyph = catGlyph(sectionId);
 
+    // Label kartu dihitung dari suffix id: paket_3 -> "Paket 03", minggu_2 -> "Minggu 2", tes_1 -> "Tes 1"
+    function computeLabel(bid, idx) {
+      const parts = bid.split('__');
+      const last = parts[parts.length - 1];
+      const seg = last.split('_');
+      const kind = seg[0];
+      const n = seg[1] || String(idx + 1);
+      const kindMap = { paket: 'Paket', minggu: 'Minggu', tes: 'Tes' };
+      const kindLabel = kindMap[kind] || (kind.charAt(0).toUpperCase() + kind.slice(1));
+      return kindLabel + ' ' + (kind === 'paket' ? String(n).padStart(2, '0') : n);
+    }
     const packets = bundleIds.map((bid, idx) => {
       const bundle = QUIZ_DATA[bid] || {};
       const st = getSectionStatus(bid);
       const sc = state.scores[bid];
       const best = sc ? (sc.bestScore || sc.score || 0) : 0;
-      const numQ = (bundle.questions || []).length;
-      const durMin = Math.round((bundle.duration || 1800) / 60);
+      // Kalau sub-bundle (minggu punya bundleIds), agregat jumlah soal & durasi dari anak-anaknya
+      let numQ = (bundle.questions || []).length;
+      let durMin = Math.round((bundle.duration || 1800) / 60);
+      if (bundle.isBundled && bundle.bundleIds && bundle.bundleIds.length) {
+        numQ = bundle.bundleIds.reduce((s, cid) => s + ((QUIZ_DATA[cid] && QUIZ_DATA[cid].questions) ? QUIZ_DATA[cid].questions.length : 0), 0);
+        const totalDurSec = bundle.bundleIds.reduce((s, cid) => s + ((QUIZ_DATA[cid] && QUIZ_DATA[cid].duration) || 0), 0);
+        durMin = totalDurSec ? Math.round(totalDurSec / 60) : durMin;
+      }
       const ps = pausedSessionsCache && pausedSessionsCache[bid];
       const answered = ps ? Object.keys(ps.answers || {}).length
                         : (state.answers[bid] ? Object.keys(state.answers[bid]).length : 0);
       const attempts = sc && sc.history ? sc.history.length : 0;
-      return { id: bid, num: idx + 1, status: st, bestScore: best, questions: numQ, durMin, answered, attempts };
+      return { id: bid, num: idx + 1, label: computeLabel(bid, idx), status: st, bestScore: best, questions: numQ, durMin, answered, attempts };
     });
+
+    // Kata generik utk copy hero (paket / minggu / tes) --- dari suffix bundleIds[0]
+    const _firstBid = bundleIds[0] || '';
+    const _lastSeg = (_firstBid.split('__').pop() || '').split('_')[0];
+    const _kindKataMap = { paket: 'paket', minggu: 'minggu', tes: 'tes' };
+    const _kindKata = _kindKataMap[_lastSeg] || 'paket';
 
     // Default filter = 'all'
     let filter = window._pktFilter || 'all';
@@ -3093,12 +3116,12 @@ function showModal(title, msg, onOk, okLabel) {
             <div class="eyebrow accent">${escapeHtml(section.tagline || section.title)}</div>
             <h2 class="h-display pkt-hero-h2">
               ${escapeHtml(section.title)}<br>
-              <em>&mdash; pilih paket latihanmu.</em>
+              <em>&mdash; pilih ${_kindKata} latihanmu.</em>
             </h2>
             <p>
-              Setiap paket berisi <strong style="color:var(--ink)">${(packets[0]||{}).questions || 25} soal</strong>
+              Setiap ${_kindKata} berisi <strong style="color:var(--ink)">${(packets[0]||{}).questions || 25} soal</strong>
               dengan batas waktu <strong style="color:var(--ink)">${(packets[0]||{}).durMin || 30} menit</strong>.
-              Kerjakan berurutan atau langsung pilih paket yang ingin dilatih ulang.
+              Kerjakan berurutan atau langsung pilih ${_kindKata} yang ingin dilatih ulang.
             </p>
             <div class="pkt-filter" id="pktFilter">
               <button class="btn sm ${filter==='all'?'primary':'ghost'}" data-f="all">Semua (${packets.length})</button>
@@ -3135,7 +3158,7 @@ function showModal(title, msg, onOk, okLabel) {
         return `
           <article class="pkt-card pkt-card--${p.status}" style="--cat-color:${color}">
             <div class="pkt-card-top">
-              <div class="pkt-num" style="color:${color}">Paket ${String(p.num).padStart(2,'0')}</div>
+              <div class="pkt-num" style="color:${color}">${p.label}</div>
               <span class="pkt-badge pkt-badge--${sl.cls}">${sl.text}</span>
             </div>
             <div class="pkt-card-meta">
