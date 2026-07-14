@@ -1674,6 +1674,98 @@ button{
 .settings-status.err{ background:var(--danger-light); color:var(--danger); }
 @media (prefers-reduced-motion: reduce){ .confetti-piece{ animation:none; display:none; } }
 
+
+/* =========== MATERI TOEIC (halaman interaktif) =========== */
+.materi-shell{ display:grid; grid-template-columns:260px 1fr; gap:var(--s-32); max-width:1200px; margin:0 auto; padding:var(--s-20); }
+@media (max-width: 900px){ .materi-shell{ grid-template-columns:1fr; } }
+.materi-toc{ position:sticky; top:80px; align-self:start; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; max-height:calc(100vh - 100px); overflow-y:auto; }
+.materi-toc h4{ font-size:12px; color:var(--ink-3); text-transform:uppercase; letter-spacing:.08em; margin:0 0 12px; }
+.materi-toc .toc-item{ display:block; padding:9px 12px; color:var(--ink-2); font-size:13px; text-decoration:none; border-radius:8px; margin-bottom:4px; cursor:pointer; border:none; background:transparent; text-align:left; width:100%; font-family:inherit; }
+.materi-toc .toc-item:hover{ background:var(--surface-2); color:var(--ink); }
+.materi-toc .toc-item.active{ background:var(--accent-soft); color:var(--accent); font-weight:600; }
+.materi-toc .toc-progress{ display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--border-2); margin-right:8px; vertical-align:middle; }
+.materi-toc .toc-progress.done{ background:var(--ok); }
+.materi-content{ min-width:0; }
+.materi-hero{ background:linear-gradient(135deg, var(--accent-soft), transparent); border:1px solid var(--border); border-radius:16px; padding:28px 24px; margin-bottom:var(--s-32); }
+.materi-hero .eyebrow{ color:var(--accent); font-size:12px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:10px; font-weight:700; }
+.materi-hero h1{ font-family:var(--display-font); font-size:32px; font-weight:400; margin:0 0 12px; color:var(--ink); }
+.materi-hero p{ margin:0; color:var(--ink-2); font-size:15px; line-height:1.65; }
+.chapter{ margin-bottom:var(--s-52); scroll-margin-top:80px; }
+.chapter > h2{ font-family:var(--display-font); font-size:28px; font-weight:400; color:var(--accent); margin:0 0 var(--s-20); padding-bottom:12px; border-bottom:2px solid var(--border-2); }
+.mat-intro{ color:var(--ink-2); font-size:15px; line-height:1.75; margin-bottom:20px; padding:14px 18px; background:var(--surface-2); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; }
+.mat-concept{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin-bottom:16px; }
+.mat-concept h3{ margin:0 0 10px; color:var(--ink); font-size:17px; font-weight:700; }
+.mat-when{ color:var(--ink-2); font-size:14px; margin-bottom:12px; line-height:1.6; }
+.mat-formula{ background:var(--bg-2); border:1px dashed var(--accent); border-radius:8px; padding:10px 14px; font-family:'Menlo','Monaco',monospace; font-size:13px; color:var(--accent); margin:10px 0; }
+.mat-note{ font-size:12px; color:var(--ink-3); font-style:italic; margin:6px 0; }
+.mat-examples{ display:flex; flex-direction:column; gap:6px; margin:12px 0; }
+.mat-ex{ background:var(--bg-2); border-radius:8px; padding:10px 14px; font-size:13px; }
+.mat-ex .en{ color:var(--ink); font-family:'Menlo','Monaco',monospace; font-size:13px; }
+.mat-ex .id{ color:var(--ink-3); font-size:12px; margin-top:4px; }
+.mat-keywords{ margin-top:12px; display:flex; flex-wrap:wrap; gap:6px; }
+.mat-keywords .lbl{ font-size:11px; color:var(--ink-3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px; width:100%; }
+.mat-keywords .chip{ background:var(--accent-soft); color:var(--accent); padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600; font-family:'Menlo','Monaco',monospace; }
+.mat-trap{ background:rgba(248,113,113,0.08); border-left:3px solid var(--danger); padding:10px 14px; border-radius:0 8px 8px 0; margin-top:12px; }
+.mat-trap::before{ content:'⚠ Jebakan · '; font-weight:700; color:var(--danger); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+.mat-trap-text{ display:inline; color:var(--ink-2); font-size:13px; line-height:1.6; }
+.mat-tip{ background:rgba(52,211,153,0.08); border-left:3px solid var(--ok); padding:10px 14px; border-radius:0 8px 8px 0; margin-top:12px; }
+.mat-tip::before{ content:'💡 Tips · '; font-weight:700; color:var(--ok); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+.mat-tip-text{ display:inline; color:var(--ink-2); font-size:13px; line-height:1.6; }
+.mat-list{ margin:8px 0 12px; padding-left:0; list-style:none; }
+.mat-list li{ padding:6px 0 6px 20px; position:relative; color:var(--ink-2); font-size:13px; }
+.mat-list li::before{ content:'▸'; position:absolute; left:4px; color:var(--accent); }
+.mat-list li strong{ color:var(--ink); font-family:'Menlo','Monaco',monospace; }
+.mat-irregular{ display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:8px; margin-top:12px; }
+.mat-irregular .irr{ background:var(--bg-2); border-radius:6px; padding:8px 10px; font-size:12px; }
+.mat-irregular .irr .v{ font-family:'Menlo','Monaco',monospace; color:var(--ink); }
+.mat-irregular .irr .v .v2{ color:var(--accent); }
+.mat-irregular .irr .id{ color:var(--ink-3); font-size:11px; margin-top:2px; }
+.mat-recap{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:10px; margin-top:14px; }
+.mat-recap .recap-card{ background:var(--surface-2); border-radius:10px; padding:12px 14px; border-left:3px solid var(--accent); }
+.mat-recap .recap-card .name{ font-weight:700; color:var(--ink); font-size:13px; margin-bottom:4px; }
+.mat-recap .recap-card .formula{ font-family:'Menlo','Monaco',monospace; color:var(--accent); font-size:12px; margin-bottom:4px; }
+.mat-recap .recap-card .cue{ color:var(--ink-3); font-size:11px; }
+.mat-collocations{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px; margin-top:12px; }
+.mat-colloc-group{ background:var(--bg-2); border-radius:8px; padding:10px 12px; }
+.mat-colloc-group .prep{ color:var(--accent); font-family:'Menlo','Monaco',monospace; font-size:13px; font-weight:700; margin-bottom:6px; display:block; }
+.mat-colloc-group .item{ font-size:12px; color:var(--ink-2); font-family:'Menlo','Monaco',monospace; padding:2px 0; }
+.mat-vocablist{ display:flex; flex-direction:column; gap:6px; }
+.mat-vocablist .voc{ background:var(--surface-2); border-radius:8px; padding:9px 12px; }
+.mat-vocablist .voc .word{ color:var(--accent); font-family:'Menlo','Monaco',monospace; font-size:13px; font-weight:700; }
+.mat-vocablist .voc .id{ color:var(--ink-2); font-size:12px; margin-left:6px; }
+.mat-vocablist .voc .ex{ color:var(--ink-3); font-size:11px; font-style:italic; margin-top:3px; font-family:'Menlo','Monaco',monospace; }
+.mat-vocabgrid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:8px; margin-top:12px; }
+.mat-vocabgrid .v-item{ background:var(--surface-2); border-radius:6px; padding:8px 10px; font-size:12px; }
+.mat-vocabgrid .v-item .word{ color:var(--accent); font-family:'Menlo','Monaco',monospace; font-weight:600; }
+.mat-vocabgrid .v-item .id{ color:var(--ink-3); font-size:11px; margin-top:2px; display:block; }
+.mat-steps{ counter-reset:step; padding-left:0; list-style:none; margin:12px 0; }
+.mat-steps li{ counter-increment:step; padding:12px 12px 12px 48px; background:var(--surface-2); border-radius:10px; margin-bottom:8px; position:relative; color:var(--ink-2); font-size:13px; line-height:1.6; }
+.mat-steps li::before{ content:counter(step); position:absolute; left:14px; top:12px; width:24px; height:24px; background:var(--accent); color:#06121F; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; }
+.mat-schedule{ display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:12px; margin-top:14px; }
+.mat-schedule .sch{ background:var(--surface-2); border-radius:10px; padding:14px; border-top:3px solid var(--accent); }
+.mat-schedule .sch .day{ font-weight:700; color:var(--accent); font-size:13px; margin-bottom:6px; }
+.mat-schedule .sch .focus{ color:var(--ink); font-size:13px; margin-bottom:6px; line-height:1.5; }
+.mat-schedule .sch .target{ color:var(--ink-3); font-size:11px; font-style:italic; }
+.quickcheck{ background:var(--surface); border:2px dashed var(--accent); border-radius:14px; padding:18px 20px; margin-top:24px; }
+.quickcheck h4{ font-size:14px; color:var(--accent); margin:0 0 14px; text-transform:uppercase; letter-spacing:.08em; font-weight:700; }
+.qc-q{ background:var(--bg-2); border-radius:10px; padding:14px 16px; margin-bottom:14px; }
+.qc-q .qtext{ color:var(--ink); font-size:14px; margin-bottom:12px; line-height:1.55; }
+.qc-opts{ display:flex; flex-direction:column; gap:6px; }
+.qc-opt{ background:var(--surface); border:1.5px solid var(--border-2); border-radius:8px; padding:8px 14px; cursor:pointer; font-size:13px; color:var(--ink-2); font-family:inherit; text-align:left; display:flex; align-items:center; gap:10px; transition:transform .12s, border-color .12s, background .12s; }
+.qc-opt:hover:not(:disabled){ border-color:var(--accent); transform:translateX(2px); }
+.qc-opt .l{ font-family:'Menlo','Monaco',monospace; font-weight:700; min-width:20px; color:var(--ink-3); }
+.qc-opt.correct{ background:rgba(52,211,153,0.12); border-color:var(--ok); color:var(--ok); }
+.qc-opt.correct .l{ color:var(--ok); }
+.qc-opt.wrong{ background:rgba(248,113,113,0.12); border-color:var(--danger); color:var(--danger); }
+.qc-opt.wrong .l{ color:var(--danger); }
+.qc-opt:disabled{ cursor:default; }
+.qc-feedback{ margin-top:10px; padding:10px 14px; border-radius:8px; font-size:12px; line-height:1.55; display:none; }
+.qc-feedback.show{ display:block; }
+.qc-feedback.right{ background:rgba(52,211,153,0.08); color:var(--ok); border-left:3px solid var(--ok); }
+.qc-feedback.wrong{ background:rgba(248,113,113,0.08); color:var(--danger); border-left:3px solid var(--danger); }
+.materi-back{ margin-bottom:var(--s-20); }
+
+
 /* per-question review (pembahasan) — panel mode */
 .review-grid button.qq{font-family:inherit;border:1px solid transparent;cursor:pointer;transition:transform .12s, box-shadow .12s, border-color .12s;}
 .review-grid button.qq[data-rev]:hover{transform:scale(1.12);border-color:var(--accent);}
@@ -2634,7 +2726,10 @@ function showModal(title, msg, onOk, okLabel) {
     });
   }
 
-  // ============ RENDER ============
+    // MATERI_DATA: konten pembelajaran per minggu
+  const MATERI_DATA = {"toeic_w1":{"id":"toeic_w1","title":"Materi Belajar Minggu 1","subtitle":"Grammar Dasar untuk Pemula","intro":"Panduan ini ditulis dengan asumsi kamu benar-benar mulai dari nol atau merasa grammar bahasa Inggrismu berantakan. Gak apa-apa, itu wajar. Grammar itu sebenarnya kayak aturan main sepak bola — kelihatan ribet di awal, tapi setelah tahu pola dasarnya, kamu bisa main dengan santai. Yang penting sabar di bab-bab awal, karena semua yang di sini adalah fondasi.","chapters":[{"id":"c1","title":"Bab 1 · Tenses (Waktu dalam Bahasa Inggris)","sections":[{"type":"intro","text":"Di bahasa Indonesia, kamu bisa bilang \"saya makan nasi kemarin\" atau \"saya makan nasi besok\", kata kerjanya sama saja: \"makan\". Bahasa Inggris beda — kata kerjanya ikut berubah tergantung kapan aksi itu terjadi. Perubahan ini namanya tenses. Total ada 12 tenses, tapi untuk TOEIC Part 5 Minggu 1 kamu cukup kuasai 6 yang paling sering muncul."},{"type":"concept","title":"1.1 Present Simple","when":"Untuk aksi berulang, kebiasaan, jadwal tetap, atau fakta umum yang selalu benar.","formula":"Subject + V1 (+s/es kalau subject tunggal orang ketiga) + objek","examples":[{"en":"I work at ASDP.","id":"Saya kerja di ASDP."},{"en":"She works at ASDP.","id":"Dia kerja di ASDP. (perhatikan +s)"},{"en":"The office opens at 8 a.m.","id":"Kantor buka jam 8 pagi."},{"en":"We attend the meeting every Monday.","id":"Kami hadir rapat setiap Senin."}],"keywords":["every day","every week","always","usually","often","sometimes","never","rarely","generally","on Mondays"],"trap":"Lupa nambahin s/es kalau subjectnya orang ketiga tunggal (he, she, it, nama orang tunggal). Aturan cepat: kalau subjectnya bisa diganti he/she/it, kata kerjanya WAJIB ada s/es."},{"type":"concept","title":"1.2 Present Continuous","when":"Untuk aksi yang lagi berlangsung persis di momen kamu ngomong, atau rencana pasti dalam waktu dekat.","formula":"Subject + am/is/are + V-ing + objek","note":"am = I · is = he/she/it/tunggal · are = you/we/they/jamak","examples":[{"en":"I am writing a report right now.","id":"Saya sedang menulis laporan sekarang."},{"en":"She is preparing for the meeting at the moment.","id":"Dia sedang menyiapkan rapat saat ini."},{"en":"The engineers are inspecting the vessel currently.","id":"Para insinyur sedang memeriksa kapal."}],"keywords":["right now","at the moment","currently","now","at this time","today","this week"],"trap":"Bedanya dengan Present Simple: 'I work at ASDP' = pekerjaan tetap. 'I am working on a project' = aksi spesifik yang sedang dilakukan."},{"type":"concept","title":"1.3 Past Simple","when":"Untuk aksi yang sudah kelar di masa lalu, dengan waktu spesifik.","formula":"Subject + V2 (bentuk kedua kata kerja) + objek","examples":[{"en":"I worked at Pelindo last year.","id":"Saya kerja di Pelindo tahun lalu."},{"en":"She sent the report yesterday.","id":"Dia mengirim laporan kemarin."},{"en":"We attended the training last week.","id":"Kami mengikuti pelatihan minggu lalu."}],"keywords":["yesterday","last week","last month","last year","ago","in 2020","when I was young"],"irregular":[{"v1":"send","v2":"sent","id":"kirim"},{"v1":"buy","v2":"bought","id":"beli"},{"v1":"teach","v2":"taught","id":"mengajar"},{"v1":"write","v2":"wrote","id":"menulis"},{"v1":"take","v2":"took","id":"mengambil"},{"v1":"give","v2":"gave","id":"memberi"},{"v1":"meet","v2":"met","id":"bertemu"},{"v1":"begin","v2":"began","id":"mulai"},{"v1":"hold","v2":"held","id":"menyelenggarakan"},{"v1":"choose","v2":"chose","id":"memilih"}]},{"type":"concept","title":"1.4 Past Continuous","when":"Untuk aksi yang lagi berlangsung di masa lalu, biasanya diinterupsi kejadian lain.","formula":"Subject + was/were + V-ing + objek","note":"was = I/he/she/it/tunggal · were = you/we/they/jamak","examples":[{"en":"I was working when the manager called.","id":"Saya sedang kerja ketika manajer menelepon."},{"en":"The engineers were inspecting the vessel when the storm started.","id":"Para insinyur sedang memeriksa kapal ketika badai mulai."}],"trap":"Pola paling sering: dua aksi di masa lalu — aksi yang lebih PANJANG pakai past continuous, aksi yang lebih PENDEK dan ngeganggu pakai past simple."},{"type":"concept","title":"1.5 Present Perfect","when":"Tiga fungsi: (1) aksi selesai di masa lalu tapi hasilnya masih terasa sekarang. (2) aksi mulai dari lampau dan berlanjut sampai sekarang. (3) pengalaman hidup tanpa nyebut kapan persisnya.","formula":"Subject + have/has + V3 + objek","note":"have = I/you/we/they · has = he/she/it/tunggal","examples":[{"en":"I have finished the report.","id":"Sudah selesai, hasilnya siap sekarang."},{"en":"She has worked here for five years.","id":"Mulai lima tahun lalu, sampai sekarang masih kerja."},{"en":"We have visited Bali twice.","id":"Pengalaman hidup, kapannya gak spesifik."}],"keywords":["already","yet","just","ever","never","since","for","recently","so far","up to now"],"trap":"SINCE + titik waktu (since 2020, since Monday). FOR + durasi (for five years, for two weeks). Salah kaprah paling sering!"},{"type":"concept","title":"1.6 Future","when":"Dua cara utama untuk TOEIC Part 5: (1) will + V1 untuk keputusan spontan atau prediksi. (2) be going to + V1 untuk rencana yang sudah dipersiapkan.","formula":"Subject + will + V1  ATAU  Subject + am/is/are + going to + V1","examples":[{"en":"I will call you tomorrow.","id":"Saya akan menelepon besok. (keputusan)"},{"en":"The board will discuss the proposal next Monday.","id":"Dewan akan bahas proposal Senin depan."},{"en":"We are going to expand the office next year.","id":"Rencana yang sudah dipersiapkan."}],"keywords":["tomorrow","next week","next month","next year","in the future","soon","later"]},{"type":"recap","title":"Ringkasan Cepat Tenses (buat drilling di kepala)","items":[{"name":"Present Simple","formula":"S + V1(+s)","cue":"every, always, usually"},{"name":"Present Continuous","formula":"S + am/is/are + V-ing","cue":"now, at the moment"},{"name":"Past Simple","formula":"S + V2","cue":"yesterday, last, ago"},{"name":"Past Continuous","formula":"S + was/were + V-ing","cue":"when + past simple"},{"name":"Present Perfect","formula":"S + have/has + V3","cue":"since, for, already, yet, just"},{"name":"Future","formula":"S + will + V1","cue":"tomorrow, next, soon"}],"tip":"Pas baca soal Part 5, langkah pertama SELALU cari kata kunci waktu di kalimat. Kalau ketemu, tinggal cocokin ke tenses yang sesuai."}],"quickCheck":[{"q":"The manager ___ every Monday morning.","options":{"A":"work","B":"works","C":"working","D":"worked"},"answer":"B","explanation":"Subject 'manager' tunggal + kata kunci 'every Monday' (rutin) = Present Simple, wajib +s → works."},{"q":"She ___ the report at the moment.","options":{"A":"reviews","B":"reviewed","C":"is reviewing","D":"has reviewed"},"answer":"C","explanation":"Kata kunci 'at the moment' = Present Continuous. Subject 'she' pakai is + V-ing."},{"q":"We ___ the training last week.","options":{"A":"attend","B":"attends","C":"are attending","D":"attended"},"answer":"D","explanation":"Kata kunci 'last week' = Past Simple. attend → attended (regular +ed)."},{"q":"I ___ here since 2020.","options":{"A":"work","B":"worked","C":"have worked","D":"am working"},"answer":"C","explanation":"'since 2020' = titik waktu masa lalu berlanjut ke sekarang = Present Perfect (have + V3)."}]},{"id":"c2","title":"Bab 2 · Subject-Verb Agreement","sections":[{"type":"intro","text":"Kata kerja harus cocok sama subjeknya dalam hal tunggal atau jamak. Bayangkan subject dan verb itu pasangan yang harus sinkron. Kalau subjectnya tunggal, verbnya juga bentuk tunggal — dan sebaliknya. Kelihatan gampang, tapi TOEIC sering ngasih jebakan dengan menyisipkan frasa panjang yang bikin kamu salah sangka."},{"type":"concept","title":"2.1 Jebakan Paling Sering: Frasa Penyisip","when":"Subject sering dipisahkan dari verbnya oleh frasa panjang. Yang harus kamu lakukan: ABAIKAN frasa penyisip, fokus ke subject utamanya.","examples":[{"en":"The manager of the sales departments IS here.","id":"Subject utama: manager (tunggal). departments cuma penyisip."},{"en":"The list of qualified candidates WAS posted yesterday.","id":"Subject utama: list (tunggal). candidates cuma penyisip."}],"trap":"Kalau ada preposisi (of, in, with, from) setelah subject, kata-kata setelah preposisi itu BUKAN subject utamanya."},{"type":"list","title":"2.2 Kata yang SELALU Tunggal","desc":"Selalu diikuti verba tunggal (verb +s/es, is/was/has):","items":["Each","Every","Everyone / Everybody / Everything","Someone / Somebody / Something","Anyone / Anybody / Anything","No one / Nobody / Nothing","One of + jamak"],"examples":[{"en":"Each employee HAS an ID card.","id":""},{"en":"Every worker WEARS a helmet.","id":""},{"en":"One of the vendors HAS submitted a bid.","id":"Subject utama: 'one', bukan 'vendors'."}]},{"type":"list","title":"2.3 Kata yang SELALU Jamak","desc":"Selalu diikuti verba jamak:","items":["Both","Both...and","Many","Few","Several"],"examples":[{"en":"Both the CEO and the CFO ARE attending.","id":""},{"en":"Several documents WERE missing.","id":""}]},{"type":"concept","title":"2.4 Either/Or dan Neither/Nor","when":"Verba mengikuti subject yang paling DEKAT dengan verba.","examples":[{"en":"Either John or his colleagues ARE going.","id":"Dekat verba: colleagues (jamak) → are"},{"en":"Neither the manager nor the staff IS available.","id":"Dekat verba: staff (kolektif tunggal) → is"}]},{"type":"concept","title":"2.5 Kata Uncountable (Tidak Bisa Dihitung)","when":"Selalu dianggap tunggal, meskipun kelihatannya jamak.","items":["information","news","advice","equipment","furniture","luggage","money","research","data (modern)","knowledge","feedback","progress","work","evidence"],"examples":[{"en":"The information IS confidential.","id":""},{"en":"This equipment NEEDS to be replaced.","id":""},{"en":"The news WAS shocking.","id":""}],"trap":"Meski di Bahasa Indonesia 'informasi' bisa banyak, di bahasa Inggris 'information' selalu tunggal."},{"type":"concept","title":"2.6 The Number Of vs A Number Of","when":"Perhatikan artikel-nya!","examples":[{"en":"The number of applicants HAS increased.","id":"'The number' = angka spesifik → tunggal → has"},{"en":"A number of applicants HAVE applied.","id":"'A number of' = sejumlah → jamak → have"}]}],"quickCheck":[{"q":"The list of qualified candidates ___ posted yesterday.","options":{"A":"is","B":"are","C":"was","D":"were"},"answer":"C","explanation":"Subject utama 'list' (tunggal). 'of qualified candidates' cuma frasa penyisip. + past ('yesterday') → was."},{"q":"Each of the employees ___ required to attend the training.","options":{"A":"are","B":"is","C":"were","D":"have"},"answer":"B","explanation":"'Each of' SELALU diikuti verba tunggal → is."},{"q":"The information ___ confidential.","options":{"A":"are","B":"were","C":"is","D":"have"},"answer":"C","explanation":"'Information' uncountable → dianggap tunggal → is."}]},{"id":"c3","title":"Bab 3 · Preposisi (Kata Depan)","sections":[{"type":"intro","text":"Preposisi itu kata kecil kayak in, on, at, by, from, for. Kelihatannya sepele tapi salah satu jebakan paling ganas di TOEIC. Kenapa? Karena aturannya kadang gak logis dan harus dihafal. Kabar bagusnya, preposisi bisa dikelompokkan berdasarkan fungsi."},{"type":"concept","title":"3.1 Preposisi Waktu: IN, ON, AT","formula":"AT + jam · ON + hari/tanggal · IN + periode panjang","examples":[{"en":"The meeting starts AT 9 a.m.","id":"at + jam spesifik"},{"en":"The office is closed ON Sunday.","id":"on + hari"},{"en":"We will launch the product IN December.","id":"in + bulan"},{"en":"She usually reads IN the evening.","id":"in + bagian hari"}],"trap":"Pengecualian: AT night (bukan 'in the night')."},{"type":"concept","title":"3.2 Preposisi Waktu: BY, UNTIL, FOR, SINCE, DURING","when":"Lima preposisi waktu yang wajib dibedakan.","items":["BY = paling lambat (deadline) — 'Submit by Friday'","UNTIL = sampai waktu tertentu (durasi) — 'Work until 6 p.m.'","FOR + durasi — 'for five years'","SINCE + titik waktu — 'since 2020'","DURING + periode/kejadian — 'during the meeting'"]},{"type":"concept","title":"3.3 Preposisi Tempat: IN, ON, AT","formula":"AT + titik/tempat spesifik · ON + permukaan · IN + di dalam ruang/area","examples":[{"en":"I am AT the office right now.","id":"titik lokasi"},{"en":"The book is ON the desk.","id":"di atas permukaan"},{"en":"The book is IN the drawer.","id":"di dalam sesuatu"},{"en":"She works IN Jakarta.","id":"kota (area)"}]},{"type":"collocation","title":"3.4 Verb + Preposisi (WAJIB DIHAFAL)","groups":[{"prep":"FOR","items":["apply for","look for","wait for","pay for","search for","ask for","prepare for","thank for"]},{"prep":"TO","items":["refer to","apply to (someone)","belong to","listen to","reply to","talk to"]},{"prep":"ON","items":["depend on","focus on","rely on","comment on","insist on","concentrate on"]},{"prep":"WITH","items":["discuss with","deal with","agree with","cooperate with","communicate with","comply with"]},{"prep":"OF","items":["consist of","remind of","approve of","think of"]},{"prep":"IN","items":["specialize in","believe in","participate in","succeed in"]}],"trap":"Apply FOR (a job) ≠ apply TO (a company). Look AT ≠ look FOR ≠ look INTO."},{"type":"collocation","title":"3.5 Adjective + Preposisi","groups":[{"prep":"OF","items":["afraid of","aware of","capable of","full of","proud of","tired of"]},{"prep":"FOR","items":["responsible for","famous for","ready for","qualified for","suitable for"]},{"prep":"TO","items":["similar to","married to","related to","available to","accustomed to"]},{"prep":"WITH","items":["familiar with","satisfied with","pleased with","consistent with","compatible with"]},{"prep":"IN","items":["interested in","involved in","experienced in","skilled in"]},{"prep":"ON","items":["based on","dependent on","keen on"]}],"tip":"Fokus dulu ke yang paling sering di dunia kerja: responsible for, familiar with, qualified for, based on, interested in, depend on, apply for, look for."}],"quickCheck":[{"q":"The meeting starts ___ 9 a.m. sharp.","options":{"A":"in","B":"on","C":"at","D":"by"},"answer":"C","explanation":"AT + jam spesifik."},{"q":"Please submit the report ___ Friday.","options":{"A":"in","B":"on","C":"at","D":"by"},"answer":"D","explanation":"BY = paling lambat / deadline. Kalau 'on Friday' berarti hari itu saja, bukan deadline."},{"q":"The team is responsible ___ the new project.","options":{"A":"of","B":"for","C":"with","D":"on"},"answer":"B","explanation":"Adjective + preposisi tetap: 'responsible FOR'."},{"q":"She applied ___ the manager position last month.","options":{"A":"at","B":"to","C":"for","D":"on"},"answer":"C","explanation":"'Apply FOR' + posisi/pekerjaan. 'Apply TO' + perusahaan."}]},{"id":"c4","title":"Bab 4 · Kosakata Dasar Kantor","sections":[{"type":"intro","text":"Kosakata TOEIC 70% dari dunia kerja: rapat, dokumen, jadwal, uang, karyawan, klien. Kalau kamu hafal kelompok kata ini, kamu bisa jawab banyak soal Part 5 dan Part 7 dengan lebih cepat."},{"type":"vocablist","title":"4.1 Kata Kerja Kantor Paling Sering Muncul","items":[{"word":"review","id":"meninjau, memeriksa","ex":"Please review the document before the meeting."},{"word":"submit","id":"menyerahkan, mengirim","ex":"Submit your report by Friday."},{"word":"attach","id":"melampirkan","ex":"I have attached the file to this email."},{"word":"approve","id":"menyetujui","ex":"The proposal was approved by the board."},{"word":"reject","id":"menolak","ex":"The application was rejected."},{"word":"schedule","id":"menjadwalkan","ex":"Let's schedule a meeting next week."},{"word":"postpone","id":"menunda","ex":"We had to postpone the launch."},{"word":"cancel","id":"membatalkan","ex":"The meeting was cancelled."},{"word":"handle","id":"menangani","ex":"She handles all customer complaints."},{"word":"assign","id":"menugaskan","ex":"I was assigned to lead the project."},{"word":"confirm","id":"mengonfirmasi","ex":"Please confirm your attendance."},{"word":"inform / notify","id":"memberi tahu","ex":"Please notify HR of any changes."},{"word":"extend","id":"memperpanjang","ex":"The deadline has been extended."},{"word":"reduce","id":"mengurangi","ex":"We need to reduce operational costs."},{"word":"enhance","id":"meningkatkan (kualitas)","ex":"The training will enhance your skills."},{"word":"implement","id":"menerapkan","ex":"We will implement the new policy next month."}]},{"type":"vocabgrid","title":"4.2 Kata Benda Dunia Kerja","items":[{"word":"invoice","id":"tagihan"},{"word":"quotation","id":"penawaran harga"},{"word":"proposal","id":"usulan/proposal"},{"word":"contract","id":"kontrak"},{"word":"agreement","id":"perjanjian"},{"word":"deadline","id":"batas waktu"},{"word":"budget","id":"anggaran"},{"word":"expense","id":"pengeluaran"},{"word":"revenue","id":"pendapatan"},{"word":"profit / loss","id":"laba / rugi"},{"word":"employee","id":"karyawan"},{"word":"employer","id":"pemberi kerja"},{"word":"applicant / candidate","id":"pelamar / kandidat"},{"word":"supervisor","id":"atasan langsung"},{"word":"colleague","id":"rekan kerja"},{"word":"client / customer","id":"klien / pelanggan"},{"word":"vendor / supplier","id":"pemasok"},{"word":"department","id":"departemen"},{"word":"branch","id":"cabang"},{"word":"headquarters","id":"kantor pusat"},{"word":"warehouse","id":"gudang"},{"word":"shipment / delivery","id":"pengiriman / pengantaran"},{"word":"refund","id":"pengembalian dana"},{"word":"salary / wage","id":"gaji bulanan / upah harian"},{"word":"benefits","id":"tunjangan"},{"word":"promotion","id":"promosi jabatan"}]},{"type":"vocabgrid","title":"4.3 Kata Sifat Dunia Kerja","items":[{"word":"qualified","id":"memenuhi syarat"},{"word":"experienced","id":"berpengalaman"},{"word":"skilled","id":"terampil"},{"word":"reliable","id":"dapat diandalkan"},{"word":"punctual","id":"tepat waktu"},{"word":"efficient / effective","id":"efisien / efektif"},{"word":"productive","id":"produktif"},{"word":"available","id":"tersedia"},{"word":"confidential","id":"rahasia"},{"word":"urgent","id":"mendesak"},{"word":"pending","id":"menunggu keputusan"},{"word":"overdue","id":"telat / lewat deadline"},{"word":"comprehensive","id":"menyeluruh"},{"word":"detailed","id":"terperinci"},{"word":"preliminary","id":"awal / sementara"},{"word":"tentative","id":"belum pasti"},{"word":"feasible","id":"layak"},{"word":"reasonable","id":"masuk akal"}]},{"type":"vocablist","title":"4.4 Frasa Idiomatik yang Sering Muncul","items":[{"word":"in advance","id":"di muka, sebelumnya","ex":"Please pay in advance."},{"word":"on behalf of","id":"atas nama","ex":"I'm writing on behalf of the CEO."},{"word":"in charge of","id":"bertanggung jawab atas","ex":"She is in charge of marketing."},{"word":"at your earliest convenience","id":"sesegera mungkin","ex":"Please reply at your earliest convenience."},{"word":"due to","id":"karena","ex":"The delay is due to bad weather."},{"word":"in case of","id":"kalau terjadi","ex":"In case of emergency, call this number."},{"word":"regarding","id":"tentang","ex":"I'm writing regarding your application."}]}],"quickCheck":[{"q":"Please ___ the invoice within 30 days.","options":{"A":"settle","B":"saddle","C":"subtle","D":"sample"},"answer":"A","explanation":"'Settle the invoice' = melunasi tagihan."},{"q":"The proposal has been ___ by the board of directors.","options":{"A":"approved","B":"appointed","C":"appeared","D":"applied"},"answer":"A","explanation":"'Approved' = disetujui, konteks board of directors."},{"q":"The company provides ___ training for all new hires.","options":{"A":"compress","B":"comprehensive","C":"compromise","D":"compulsive"},"answer":"B","explanation":"'Comprehensive training' = pelatihan menyeluruh (kolokasi)."}]},{"id":"c5","title":"Bab 5 · Strategi Jawab Soal Part 5","sections":[{"type":"intro","text":"Setelah paham materi grammar & preposisi, ini strategi ngerjain soal biar gak buang waktu — target 20 detik per soal."},{"type":"steps","title":"4 Langkah Kerjakan Part 5","items":["Baca kalimatnya SEKALI dulu, jangan langsung lihat pilihan. Kalau udah bisa tebak kata yang hilang tanpa lihat pilihan, kamu lebih akurat.","Kenali POLA dari 4 pilihan yang tersedia (lihat 3 pola di bawah).","Kalau bingung, ELIMINASI pilihan yang jelas salah. Tebakan dari 2 pilihan tersisa = 50%, jauh lebih baik dari nol.","Jangan menghabiskan waktu terlalu lama di 1 soal. Kalau lebih dari 30 detik, tandai, tebak jawaban terbaik, lanjut. Balik di akhir."]},{"type":"concept","title":"3 Pola Soal Part 5","items":["POLA A · Tenses berbeda: work / works / worked / has worked. Cari kata kunci waktu di kalimat.","POLA B · Word forms: produce / product / production / productive. Perhatikan kata di kiri-kanan kekosongan (article, adjective, verb).","POLA C · Preposisi berbeda: in / on / at / by. Cari kata kerja/kata sifat yang butuh preposisi tetap, atau indikasi waktu/tempat."]}],"quickCheck":[]},{"id":"c6","title":"Bab 6 · Rutinitas Belajar Minggu 1","sections":[{"type":"intro","text":"Materi ini fondasi. Belum cukup untuk skor tinggi TOEIC sendirian, tapi cukup untuk jawab Part 5 dengan pola yang jelas — gak tebak-tebakan buta. Yang paling penting: KONSISTEN setiap hari. 30 menit tiap hari selama seminggu jauh lebih efektif daripada 5 jam sekali seminggu."},{"type":"schedule","items":[{"day":"Hari 1-2","focus":"Present Simple & Present Continuous + S-V Agreement dasar","target":"Paket 1 (soal 1-4, 21-30 di bank soal)"},{"day":"Hari 3","focus":"Past Simple & Past Continuous","target":"Paket 2 (soal 5-6, 12, 20, 31-40)"},{"day":"Hari 4","focus":"Present Perfect (bab tersulit, kasih waktu ekstra)","target":"Paket 3 (soal 9-11 + review tenses)"},{"day":"Hari 5","focus":"Preposisi waktu","target":"Paket 4 (soal 41-51, 94-96)"},{"day":"Hari 6","focus":"Preposisi tempat & preposisi umum","target":"Paket 5 (soal 52-75, 97-100)"},{"day":"Hari 7","focus":"Kosakata kantor + review campur","target":"Paket 6 (soal 76-85, 101-105, 115-120)"}]}],"quickCheck":[]}]}};
+
+// ============ RENDER ============
   const app = document.getElementById('app');
 
   function render() {
@@ -2648,6 +2743,7 @@ function showModal(title, msg, onOk, okLabel) {
     else if (state.view === 'bundle_select' || state.view === 'packet_select') renderPacketSelect();
     else if (state.view === 'quiz') renderQuiz();
     else if (state.view === 'result') renderResult();
+    else if (state.view === 'materi') renderMateri();
     else { state.view = 'home'; render(); }
   }
 
@@ -3199,6 +3295,8 @@ function showModal(title, msg, onOk, okLabel) {
       if (back) back.addEventListener('click', () => {
         state.view = 'home'; saveState(); render();
       });
+      const _matBtn = document.getElementById('btnBacaMateri');
+      if (_matBtn) _matBtn.addEventListener('click', () => { state.activeMateri = 'toeic_w1'; state.view = 'materi'; saveState(); render(); });
       document.querySelectorAll('#pktFilter [data-f]').forEach(b => {
         b.addEventListener('click', () => {
           window._pktFilter = b.getAttribute('data-f');
@@ -3750,6 +3848,204 @@ function showModal(title, msg, onOk, okLabel) {
     });
     const nx = document.getElementById('resultNext');
     if (nx && recommendation) nx.addEventListener('click', () => startSection(recommendation.id));
+  }
+
+  // ---------- MATERI (halaman belajar interaktif) ----------
+  function renderMateri() {
+    const key = state.activeMateri || 'toeic_w1';
+    const m = MATERI_DATA[key];
+    if (!m) { state.view = 'home'; render(); return; }
+    // Progress per bab (session-only, tidak disync ke supabase)
+    if (!state.materiProgress) state.materiProgress = {};
+    if (!state.materiProgress[key]) state.materiProgress[key] = {};
+    const prog = state.materiProgress[key];
+
+    function tocHtml() {
+      return m.chapters.map(c => {
+        const done = prog[c.id];
+        return `<button class="toc-item" data-toc="${c.id}"><span class="toc-progress ${done?'done':''}"></span>${escapeHtml(c.title)}</button>`;
+      }).join('');
+    }
+
+    function renderSection(s) {
+      switch (s.type) {
+        case 'intro':
+          return `<div class="mat-intro">${escapeHtml(s.text)}</div>`;
+        case 'concept':
+          return `<div class="mat-concept">
+            <h3>${escapeHtml(s.title)}</h3>
+            ${s.when ? `<div class="mat-when">${escapeHtml(s.when)}</div>` : ''}
+            ${s.formula ? `<div class="mat-formula">${escapeHtml(s.formula)}</div>` : ''}
+            ${s.note ? `<div class="mat-note">${escapeHtml(s.note)}</div>` : ''}
+            ${s.items && !s.groups ? `<ul class="mat-list">${s.items.map(it => '<li>' + escapeHtml(it) + '</li>').join('')}</ul>` : ''}
+            ${s.examples ? `<div class="mat-examples">${s.examples.map(e => `<div class="mat-ex"><div class="en">${escapeHtml(e.en)}</div>${e.id ? '<div class="id">' + escapeHtml(e.id) + '</div>' : ''}</div>`).join('')}</div>` : ''}
+            ${s.keywords ? `<div class="mat-keywords"><span class="lbl">Kata Kunci</span>${s.keywords.map(k => '<span class="chip">' + escapeHtml(k) + '</span>').join('')}</div>` : ''}
+            ${s.irregular ? `<div class="mat-irregular">${s.irregular.map(i => `<div class="irr"><div class="v">${escapeHtml(i.v1)} → <span class="v2">${escapeHtml(i.v2)}</span></div><div class="id">${escapeHtml(i.id)}</div></div>`).join('')}</div>` : ''}
+            ${s.trap ? `<div class="mat-trap"><span class="mat-trap-text">${escapeHtml(s.trap)}</span></div>` : ''}
+            ${s.tip ? `<div class="mat-tip"><span class="mat-tip-text">${escapeHtml(s.tip)}</span></div>` : ''}
+          </div>`;
+        case 'list':
+          return `<div class="mat-concept">
+            <h3>${escapeHtml(s.title)}</h3>
+            ${s.desc ? `<div class="mat-when">${escapeHtml(s.desc)}</div>` : ''}
+            <ul class="mat-list">${s.items.map(it => '<li><strong>' + escapeHtml(it) + '</strong></li>').join('')}</ul>
+            ${s.examples ? `<div class="mat-examples">${s.examples.map(e => `<div class="mat-ex"><div class="en">${escapeHtml(e.en)}</div>${e.id ? '<div class="id">' + escapeHtml(e.id) + '</div>' : ''}</div>`).join('')}</div>` : ''}
+          </div>`;
+        case 'recap':
+          return `<div class="mat-concept">
+            <h3>${escapeHtml(s.title)}</h3>
+            <div class="mat-recap">${s.items.map(i => `<div class="recap-card"><div class="name">${escapeHtml(i.name)}</div><div class="formula">${escapeHtml(i.formula)}</div><div class="cue">${escapeHtml(i.cue)}</div></div>`).join('')}</div>
+            ${s.tip ? `<div class="mat-tip"><span class="mat-tip-text">${escapeHtml(s.tip)}</span></div>` : ''}
+          </div>`;
+        case 'collocation':
+          return `<div class="mat-concept">
+            <h3>${escapeHtml(s.title)}</h3>
+            <div class="mat-collocations">${s.groups.map(g => `<div class="mat-colloc-group"><span class="prep">+ ${escapeHtml(g.prep)}</span>${g.items.map(i => '<div class="item">' + escapeHtml(i) + '</div>').join('')}</div>`).join('')}</div>
+            ${s.trap ? `<div class="mat-trap"><span class="mat-trap-text">${escapeHtml(s.trap)}</span></div>` : ''}
+            ${s.tip ? `<div class="mat-tip"><span class="mat-tip-text">${escapeHtml(s.tip)}</span></div>` : ''}
+          </div>`;
+        case 'vocablist':
+          return `<div class="mat-concept">
+            <h3>${escapeHtml(s.title)}</h3>
+            <div class="mat-vocablist">${s.items.map(v => `<div class="voc"><span class="word">${escapeHtml(v.word)}</span><span class="id">${escapeHtml(v.id)}</span>${v.ex ? '<div class="ex">' + escapeHtml(v.ex) + '</div>' : ''}</div>`).join('')}</div>
+          </div>`;
+        case 'vocabgrid':
+          return `<div class="mat-concept">
+            <h3>${escapeHtml(s.title)}</h3>
+            <div class="mat-vocabgrid">${s.items.map(v => `<div class="v-item"><span class="word">${escapeHtml(v.word)}</span><span class="id">${escapeHtml(v.id)}</span></div>`).join('')}</div>
+          </div>`;
+        case 'steps':
+          return `<div class="mat-concept">
+            <h3>${escapeHtml(s.title)}</h3>
+            <ol class="mat-steps">${s.items.map(i => '<li>' + escapeHtml(i) + '</li>').join('')}</ol>
+          </div>`;
+        case 'schedule':
+          return `<div class="mat-concept">
+            <div class="mat-schedule">${s.items.map(i => `<div class="sch"><div class="day">${escapeHtml(i.day)}</div><div class="focus">${escapeHtml(i.focus)}</div><div class="target">${escapeHtml(i.target)}</div></div>`).join('')}</div>
+          </div>`;
+        default:
+          return '';
+      }
+    }
+
+    function quickCheckHtml(qc, chapterId) {
+      if (!qc || !qc.length) return '';
+      return `<div class="quickcheck">
+        <h4>🎯 Quick Check</h4>
+        ${qc.map((q, qi) => `
+          <div class="qc-q" data-qc="${chapterId}-${qi}">
+            <div class="qtext">${escapeHtml(q.q)}</div>
+            <div class="qc-opts">
+              ${Object.keys(q.options).map(k => `<button class="qc-opt" data-qcopt="${k}" data-qccorrect="${q.answer}"><span class="l">${k}</span><span>${escapeHtml(q.options[k])}</span></button>`).join('')}
+            </div>
+            <div class="qc-feedback" data-qcfb><span class="qc-explain">${escapeHtml(q.explanation)}</span></div>
+          </div>
+        `).join('')}
+      </div>`;
+    }
+
+    // Kembali navigation: kalau materi minggu, balik ke daftar paket minggu itu; else home
+    const backTo = state.activeSection && state.activeSection.startsWith('toeic__minggu_') ? 'packet_select' : 'home';
+
+    app.innerHTML = `
+      <div class="materi-shell">
+        <aside class="materi-toc">
+          <div class="materi-back">
+            <button class="btn ghost sm" id="matBack">← ${backTo === 'packet_select' ? 'Kembali ke Daftar Paket' : 'Kembali ke Beranda'}</button>
+          </div>
+          <h4>Daftar Isi</h4>
+          ${tocHtml()}
+        </aside>
+        <main class="materi-content">
+          <div class="materi-hero">
+            <div class="eyebrow">📖 ${escapeHtml(m.title)}</div>
+            <h1>${escapeHtml(m.subtitle)}</h1>
+            <p>${escapeHtml(m.intro)}</p>
+          </div>
+          ${m.chapters.map(c => `
+            <section class="chapter" id="ch-${c.id}">
+              <h2>${escapeHtml(c.title)}</h2>
+              ${c.sections.map(renderSection).join('')}
+              ${quickCheckHtml(c.quickCheck, c.id)}
+              <div style="margin-top:20px; text-align:center;">
+                <button class="btn ${prog[c.id] ? 'ghost' : 'primary'} sm" data-mark="${c.id}">
+                  ${prog[c.id] ? '✓ Sudah Dibaca' : 'Tandai Sudah Dibaca'}
+                </button>
+              </div>
+            </section>
+          `).join('')}
+        </main>
+      </div>
+    `;
+
+    // Wire back button
+    const back = document.getElementById('matBack');
+    if (back) back.addEventListener('click', () => {
+      state.view = backTo; saveState(); render();
+    });
+
+    // Wire TOC scroll
+    document.querySelectorAll('[data-toc]').forEach(b => {
+      b.addEventListener('click', () => {
+        const cid = b.getAttribute('data-toc');
+        const el = document.getElementById('ch-' + cid);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.querySelectorAll('[data-toc]').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+      });
+    });
+
+    // Wire quick-check
+    document.querySelectorAll('[data-qc]').forEach(box => {
+      const opts = box.querySelectorAll('[data-qcopt]');
+      opts.forEach(o => {
+        o.addEventListener('click', () => {
+          const chosen = o.getAttribute('data-qcopt');
+          const correct = o.getAttribute('data-qccorrect');
+          opts.forEach(x => {
+            x.disabled = true;
+            const k = x.getAttribute('data-qcopt');
+            if (k === correct) x.classList.add('correct');
+            else if (k === chosen) x.classList.add('wrong');
+          });
+          const fb = box.querySelector('[data-qcfb]');
+          if (fb) {
+            fb.classList.remove('right', 'wrong');
+            fb.classList.add(chosen === correct ? 'right' : 'wrong');
+            fb.classList.add('show');
+          }
+        });
+      });
+    });
+
+    // Wire mark-done
+    document.querySelectorAll('[data-mark]').forEach(b => {
+      b.addEventListener('click', () => {
+        const cid = b.getAttribute('data-mark');
+        prog[cid] = !prog[cid];
+        saveState();
+        renderMateri();
+      });
+    });
+
+    // Auto-highlight TOC berdasarkan scroll (throttled)
+    let scrollTimer = null;
+    window.addEventListener('scroll', () => {
+      if (scrollTimer) return;
+      scrollTimer = setTimeout(() => {
+        scrollTimer = null;
+        const chapters = m.chapters;
+        for (let i = chapters.length - 1; i >= 0; i--) {
+          const el = document.getElementById('ch-' + chapters[i].id);
+          if (el && el.getBoundingClientRect().top < 200) {
+            document.querySelectorAll('[data-toc]').forEach(x => x.classList.remove('active'));
+            const t = document.querySelector('[data-toc="' + chapters[i].id + '"]');
+            if (t) t.classList.add('active');
+            break;
+          }
+        }
+      }, 120);
+    }, { passive: true });
   }
 
   // ---------- ONBOARDING (3-step carousel) ----------
