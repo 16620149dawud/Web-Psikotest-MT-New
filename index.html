@@ -3206,7 +3206,9 @@ function showModal(title, msg, onOk, okLabel) {
     }
 
     function renderHero() {
+      const _isToeicMinggu = sectionId.startsWith('toeic__minggu_');
       return `
+        ${_isToeicMinggu ? '<div style="margin-bottom:var(--s-12)"><button class="btn primary sm" id="btnBacaMateri">&#x1F4D6; Baca Materi Belajar</button></div>' : ''}
         <section class="pkt-hero" style="--cat-color:${color}">
           <div class="pkt-hero-left">
             <div class="eyebrow accent">${escapeHtml(section.tagline || section.title)}</div>
