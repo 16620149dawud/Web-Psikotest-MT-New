@@ -3140,6 +3140,15 @@ function showModal(title, msg, onOk, okLabel) {
     if (!section) { state.view = 'home'; render(); return; }
     const bundleIds = getBundleIds(sectionId);
     if (!bundleIds.length) { startSection(sectionId); return; }
+    const parentId = sectionId.indexOf('__') > 0 ? sectionId.split('__')[0] : null;
+    const parentSection = parentId ? QUIZ_DATA[parentId] : null;
+    let pktBackLabel = 'Kembali ke Beranda';
+    if (parentSection) {
+      const pFirstBid = (parentSection.bundleIds || [])[0] || '';
+      const pLastSeg = (pFirstBid.split('__').pop() || '').split('_')[0];
+      const pKindMap = { paket: 'Paket', minggu: 'Minggu', tes: 'Tes' };
+      pktBackLabel = 'Kembali ke Daftar ' + (pKindMap[pLastSeg] || 'Paket');
+    }
     const color = catColor(sectionId);
     const glyph = catGlyph(sectionId);
 
@@ -3283,7 +3292,7 @@ function showModal(title, msg, onOk, okLabel) {
       app.innerHTML = `
         <div class="pkt-shell">
           <div style="margin-bottom:var(--s-12)">
-            <button class="btn ghost sm" id="pktBack">&larr; Kembali ke Beranda</button>
+            <button class="btn ghost sm" id="pktBack">&larr; ${pktBackLabel}</button>
           </div>
           ${renderHero()}
           ${renderGrid()}
@@ -3295,7 +3304,9 @@ function showModal(title, msg, onOk, okLabel) {
     function wire() {
       const back = document.getElementById('pktBack');
       if (back) back.addEventListener('click', () => {
-        state.view = 'home'; saveState(); render();
+        if (parentId) { state.activeSection = parentId; state.view = 'bundle_select'; }
+        else { state.view = 'home'; }
+        saveState(); render();
       });
       const _matBtn = document.getElementById('btnBacaMateri');
       if (_matBtn) _matBtn.addEventListener('click', () => { var _m = sectionId.match(/toeic__minggu_(\d+)/); state.activeMateri = _m ? ('toeic_w' + _m[1]) : 'toeic_w1'; state.view = 'materi'; saveState(); render(); });
