@@ -3643,7 +3643,9 @@ function showModal(title, msg, onOk, okLabel) {
 
     const section = getSection(state.activeSection);
     const sectionId = state.activeSection;
-    const userAns = state.answers[sectionId] || {};
+    const latestAnswers = state.answers[sectionId] || {};
+    const bestAnswersSaved = (state.bestAnswers && state.bestAnswers[sectionId]) || null;
+    const userAns = bestAnswersSaved || latestAnswers;
     const sc = state.scores[sectionId];
     if (!section || !sc) { state.view = 'home'; render(); return; }
 
@@ -3659,9 +3661,9 @@ function showModal(title, msg, onOk, okLabel) {
     // Jawaban lokal bisa kosong kalau hasil datang dari sync device lain --
     // kalau begitu, semua pembahasan dibuka (percobaan sudah pernah terjadi)
     const hasLocalAnswers = Object.keys(userAns).length > 0;
-    const score = sc.score || (totalQ ? Math.round((right / totalQ) * 100) : 0);
+    const score = sc.bestScore || sc.score || (totalQ ? Math.round((right / totalQ) * 100) : 0);
     const prevBest = sc.bestScore || 0;
-    const isNewBest = score >= prevBest && (sc.history || []).length > 0;
+    const isNewBest = sc.score >= prevBest && (sc.history || []).length > 0;
     const ringC = score >= 70 ? 'var(--ok)' : score >= 50 ? 'var(--warn)' : 'var(--danger)';
 
     let verdict, verb;
@@ -4245,6 +4247,10 @@ function showModal(title, msg, onOk, okLabel) {
       duration,
       history,
     };
+    if (!state.bestAnswers) state.bestAnswers = {};
+    if (!prev || score >= prev.bestScore) {
+      state.bestAnswers[sectionId] = { ...userAns };
+    }
     state.completedAt[sectionId] = Date.now();
     try { recordStreakActivity(); } catch (e) {}
     setTimeout(() => maybeCelebrateScore(sectionId, score, _prevBestForCelebrate), 350);
