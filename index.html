@@ -2080,6 +2080,7 @@ button{
         total: scoreData.total,
         duration_seconds: scoreData.duration,
         timed_out: scoreData.timedOut,
+        answers: scoreData.answers || {},
       });
       if (error) {
         state.submitStatus[sectionId] = 'error';
@@ -4268,7 +4269,7 @@ function showModal(title, msg, onOk, okLabel) {
     if (currentUser && isLeaderboardEnabled()) {
       submitScoreToSupabase(sectionId, {
         score: best, correct, total: section.questions.length,
-        duration, timedOut: !!timedOut,
+        duration, timedOut: !!timedOut, answers: userAns,
       }).then(() => {
         if (state.view === 'result' && state.activeSection === sectionId) {
           render();
@@ -4935,6 +4936,11 @@ function showModal(title, msg, onOk, okLabel) {
           total:     row.latest_total,
           history
         };
+        // Jawaban attempt terbaik dari Supabase -- biar pembahasan ikut pindah device
+        if (row.best_answers) {
+          if (!state.bestAnswers) state.bestAnswers = {};
+          if (!state.bestAnswers[sid]) state.bestAnswers[sid] = row.best_answers;
+        }
         // Tandai section sebagai selesai berdasarkan data Supabase
         if (!state.completedAt[sid]) {
           state.completedAt[sid] = new Date(row.last_submitted_at).getTime();
