@@ -1768,6 +1768,45 @@ button{
 .materi-toc .toc-progress{ display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--border-2); margin-right:8px; vertical-align:middle; }
 .materi-toc .toc-progress.done{ background:var(--ok); }
 .materi-content{ min-width:0; }
+.materi-toc-fab{ display:none; }
+.materi-toc-backdrop{ display:none; }
+.materi-toc-close{ display:none; }
+@media (max-width: 900px){
+  .materi-toc-fab{
+    display:flex; align-items:center; justify-content:center;
+    position:fixed; right:20px; bottom:20px; z-index:150;
+    width:52px; height:52px; border-radius:50%;
+    background:var(--accent); color:#fff;
+    font-size:21px; line-height:1;
+    box-shadow:0 10px 24px var(--shadow-3);
+    border:none; transition:transform 0.15s;
+  }
+  .materi-toc-fab:active{ transform:scale(0.92); }
+  .materi-toc-backdrop{
+    display:block;
+    position:fixed; inset:0; z-index:198;
+    background:rgba(4,8,16,0.6);
+    opacity:0; pointer-events:none;
+    transition:opacity 0.25s ease;
+  }
+  .materi-toc-backdrop.open{ opacity:1; pointer-events:auto; }
+  .materi-toc{
+    position:fixed; top:0; left:0; bottom:0; margin:0;
+    width:82%; max-width:320px; height:100vh; max-height:100vh;
+    z-index:199; border-radius:0 18px 18px 0;
+    transform:translateX(-100%);
+    transition:transform 0.28s ease;
+    box-shadow:0 0 40px var(--shadow-4);
+  }
+  .materi-toc.open{ transform:translateX(0); }
+  .materi-toc-close{
+    display:flex; align-items:center; justify-content:center;
+    position:absolute; top:14px; right:14px;
+    width:32px; height:32px; border-radius:50%;
+    background:var(--tint-06); color:var(--ink-2);
+    font-size:18px; border:none; z-index:1;
+  }
+}
 .materi-hero{ background:linear-gradient(135deg, var(--accent-soft), transparent); border:1px solid var(--border); border-radius:16px; padding:28px 24px; margin-bottom:var(--s-32); }
 .materi-hero .eyebrow{ color:var(--accent); font-size:12px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:10px; font-weight:700; }
 .materi-hero h1{ font-family:var(--display-font); font-size:32px; font-weight:400; margin:0 0 12px; color:var(--ink); }
@@ -4080,7 +4119,10 @@ function showModal(title, msg, onOk, okLabel) {
 
     app.innerHTML = `
       <div class="materi-shell">
-        <aside class="materi-toc">
+        <div class="materi-toc-backdrop" id="materiTocBackdrop"></div>
+        <button class="materi-toc-fab" id="materiTocFab" aria-label="Buka daftar isi">&#9776;</button>
+        <aside class="materi-toc" id="materiToc">
+          <button class="materi-toc-close" id="materiTocClose" aria-label="Tutup daftar isi">&times;</button>
           <div class="materi-back">
             <button class="btn ghost sm" id="matBack">← ${backTo === 'packet_select' ? 'Kembali ke Daftar Paket' : 'Kembali ke Beranda'}</button>
           </div>
@@ -4115,6 +4157,23 @@ function showModal(title, msg, onOk, okLabel) {
       state.view = backTo; saveState(); render();
     });
 
+    // Wire mobile TOC drawer (FAB buka, backdrop/close/pilih-bab nutup)
+    const tocEl = document.getElementById('materiToc');
+    const tocFab = document.getElementById('materiTocFab');
+    const tocBackdrop = document.getElementById('materiTocBackdrop');
+    const tocCloseBtn = document.getElementById('materiTocClose');
+    function openToc() {
+      if (tocEl) tocEl.classList.add('open');
+      if (tocBackdrop) tocBackdrop.classList.add('open');
+    }
+    function closeToc() {
+      if (tocEl) tocEl.classList.remove('open');
+      if (tocBackdrop) tocBackdrop.classList.remove('open');
+    }
+    if (tocFab) tocFab.addEventListener('click', openToc);
+    if (tocBackdrop) tocBackdrop.addEventListener('click', closeToc);
+    if (tocCloseBtn) tocCloseBtn.addEventListener('click', closeToc);
+
     // Wire TOC scroll
     document.querySelectorAll('[data-toc]').forEach(b => {
       b.addEventListener('click', () => {
@@ -4123,6 +4182,7 @@ function showModal(title, msg, onOk, okLabel) {
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         document.querySelectorAll('[data-toc]').forEach(x => x.classList.remove('active'));
         b.classList.add('active');
+        closeToc();
       });
     });
 
