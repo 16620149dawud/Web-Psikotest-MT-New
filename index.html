@@ -3265,16 +3265,23 @@ function showModal(title, msg, onOk, okLabel) {
       // Kalau sub-bundle (minggu punya bundleIds), agregat jumlah soal & durasi dari anak-anaknya
       let numQ = (bundle.questions || []).length;
       let durMin = Math.round((bundle.duration || 1800) / 60);
+      let isSubBundle = false;
+      let childDone = 0, childTotal = 0, childAvgBest = 0;
       if (bundle.isBundled && bundle.bundleIds && bundle.bundleIds.length) {
+        isSubBundle = true;
         numQ = bundle.bundleIds.reduce((s, cid) => s + ((QUIZ_DATA[cid] && QUIZ_DATA[cid].questions) ? QUIZ_DATA[cid].questions.length : 0), 0);
         const totalDurSec = bundle.bundleIds.reduce((s, cid) => s + ((QUIZ_DATA[cid] && QUIZ_DATA[cid].duration) || 0), 0);
         durMin = totalDurSec ? Math.round(totalDurSec / 60) : durMin;
+        childTotal = bundle.bundleIds.length;
+        childDone = bundle.bundleIds.filter(cid => getSectionStatus(cid) === 'done').length;
+        const childScores = bundle.bundleIds.map(cid => state.scores[cid]).filter(Boolean).map(s => s.bestScore || s.score || 0);
+        childAvgBest = childScores.length ? Math.round(childScores.reduce((a, b) => a + b, 0) / childScores.length) : 0;
       }
       const ps = pausedSessionsCache && pausedSessionsCache[bid];
       const answered = ps ? Object.keys(ps.answers || {}).length
                         : (state.answers[bid] ? Object.keys(state.answers[bid]).length : 0);
       const attempts = sc && sc.history ? sc.history.length : 0;
-      return { id: bid, num: idx + 1, label: computeLabel(bid, idx), status: st, bestScore: best, questions: numQ, durMin, answered, attempts };
+      return { id: bid, num: idx + 1, label: computeLabel(bid, idx), status: st, bestScore: best, questions: numQ, durMin, answered, attempts, isSubBundle, childDone, childTotal, childAvgBest };
     });
 
     // Kata generik utk copy hero (paket / minggu / tes) --- dari suffix bundleIds[0]
@@ -3297,12 +3304,18 @@ function showModal(title, msg, onOk, okLabel) {
     const ringPct = packets.length ? Math.round((doneCount / packets.length) * 100) : 0;
 
     function statusLabel(p) {
+      if (p.isSubBundle) {
+        const cls = p.status === 'done' ? 'done' : p.status === 'in_progress' ? 'progress' : 'pending';
+        const text = p.status === 'pending' ? 'Belum Dimulai' : (p.childDone + '/' + p.childTotal + ' Paket Selesai');
+        return { text, cls };
+      }
       if (p.status === 'done') return { text: 'Terbaik ' + p.bestScore + '%', cls: 'done' };
       if (p.status === 'in_progress') return { text: 'Sedang berjalan', cls: 'progress' };
       if (p.status === 'paused') return { text: '⏸ Ditunda', cls: 'paused' };
       return { text: 'Belum mulai', cls: 'pending' };
     }
     function actionLabel(p) {
+      if (p.isSubBundle) return '&#x1F4C2; Buka Paket &amp; Materi &rarr;';
       if (p.status === 'done') return 'Ulangi';
       if (p.status === 'in_progress' || p.status === 'paused') return 'Lanjutkan &rarr;';
       return 'Mulai &rarr;';
@@ -3355,8 +3368,8 @@ function showModal(title, msg, onOk, okLabel) {
       }
       return `<div class="pkt-grid">${filtered.map(p => {
         const sl = statusLabel(p);
-        const bar = p.bestScore > 0 ? p.bestScore : 0;
-        const scColor = p.bestScore >= 70 ? 'var(--ok)' : p.bestScore >= 50 ? 'var(--warn)' : 'var(--danger)';
+        const bar = p.isSubBundle ? (p.childTotal ? Math.round((p.childDone / p.childTotal) * 100) : 0) : (p.bestScore > 0 ? p.bestScore : 0);
+        const scColor = p.isSubBundle ? color : (p.bestScore >= 70 ? 'var(--ok)' : p.bestScore >= 50 ? 'var(--warn)' : 'var(--danger)');
         return `
           <article class="pkt-card pkt-card--${p.status}" style="--cat-color:${color}">
             <div class="pkt-card-top">
@@ -3370,11 +3383,15 @@ function showModal(title, msg, onOk, okLabel) {
             </div>
             ${bar > 0 ? `<div class="pkt-bar"><div class="pkt-bar-fill" style="width:${bar}%"></div></div>` : ''}
             <div class="pkt-card-foot">
-              ${p.bestScore > 0
-                ? '<div class="pkt-score-row"><span class="pkt-score-num" style="color:' + scColor + '">' + p.bestScore + '%</span><span class="pkt-score-lbl">terbaik</span></div>'
-                : '<div></div>'}
+              ${p.isSubBundle
+                ? (p.childAvgBest > 0
+                    ? '<div class="pkt-score-row"><span class="pkt-score-num" style="color:var(--ok)">' + p.childAvgBest + '%</span><span class="pkt-score-lbl">rata-rata skor</span></div>'
+                    : '<div></div>')
+                : (p.bestScore > 0
+                    ? '<div class="pkt-score-row"><span class="pkt-score-num" style="color:' + scColor + '">' + p.bestScore + '%</span><span class="pkt-score-lbl">terbaik</span></div>'
+                    : '<div></div>')}
               <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-                ${p.status === 'done' ? `<button class="btn ghost sm" data-pkt-rev="${p.id}">&#x1F4D6; Pembahasan</button>` : ''}
+                ${(!p.isSubBundle && p.status === 'done') ? `<button class="btn ghost sm" data-pkt-rev="${p.id}">&#x1F4D6; Pembahasan</button>` : ''}
                 <button class="btn ${p.status==='not_started'?'ghost':'primary'} sm" data-pkt="${p.id}">${actionLabel(p)}</button>
               </div>
             </div>
