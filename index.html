@@ -57,6 +57,74 @@
   --display-font: var(--font-sans);
   --display-weight: 700;
   --display-style: normal;
+
+  /* Neutral tint tokens (white-on-dark by default; remapped to slate-on-light below) */
+  --tint-025: rgb(255 255 255 / 0.025);
+  --tint-03:  rgb(255 255 255 / 0.03);
+  --tint-04:  rgb(255 255 255 / 0.04);
+  --tint-05:  rgb(255 255 255 / 0.05);
+  --tint-06:  rgb(255 255 255 / 0.06);
+  --tint-08:  rgb(255 255 255 / 0.08);
+  --tint-10:  rgb(255 255 255 / 0.10);
+  --tint-12:  rgb(255 255 255 / 0.12);
+  --tint-15:  rgb(255 255 255 / 0.15);
+
+  /* Elevation shadow tokens */
+  --shadow-1: rgb(0 0 0 / 0.3);
+  --shadow-2: rgb(0 0 0 / 0.35);
+  --shadow-3: rgb(0 0 0 / 0.4);
+  --shadow-4: rgb(0 0 0 / 0.5);
+  --shadow-5: rgb(0 0 0 / 0.6);
+
+  color-scheme: dark;
+}
+
+/* ==========================================================
+   LIGHT MODE — activated via [data-theme="light"] on <html>
+   Toggled from the appbar; logic in toggleTheme()/applyTheme().
+   ========================================================== */
+[data-theme="light"]{
+  color-scheme: light;
+
+  --bg:        #F3F6FC;
+  --bg-2:      #E9EFF9;
+  --surface:   #FFFFFF;
+  --surface-2: #F6F9FD;
+  --border:    rgba(15,23,42,0.08);
+  --border-2:  rgba(15,23,42,0.14);
+
+  --ink:    #101A2C;
+  --ink-2:  #4A5872;
+  --ink-3:  #808EA3;
+
+  --accent:       #0284C7;
+  --accent-deep:  #1D4ED8;
+  --accent-soft:  rgba(2,132,199,0.10);
+
+  --ok:     #047857;
+  --warn:   #B45309;
+  --danger: #DC2626;
+
+  --tint-025: rgba(15,23,42,0.04);
+  --tint-03:  rgba(15,23,42,0.045);
+  --tint-04:  rgba(15,23,42,0.05);
+  --tint-05:  rgba(15,23,42,0.06);
+  --tint-06:  rgba(15,23,42,0.07);
+  --tint-08:  rgba(15,23,42,0.09);
+  --tint-10:  rgba(15,23,42,0.10);
+  --tint-12:  rgba(15,23,42,0.12);
+  --tint-15:  rgba(15,23,42,0.14);
+
+  --shadow-1: rgba(15,23,42,0.10);
+  --shadow-2: rgba(15,23,42,0.12);
+  --shadow-3: rgba(15,23,42,0.14);
+  --shadow-4: rgba(15,23,42,0.16);
+  --shadow-5: rgba(15,23,42,0.20);
+}
+[data-theme="light"] body::before{
+  background:
+    radial-gradient(1100px 700px at 80% -10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+    radial-gradient(900px 600px at -10% 30%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 65%);
 }
 /* Editorial mood — switch display headings to serif */
 [data-mood="editorial"]{
@@ -116,11 +184,11 @@ button{
 }
 .btn.primary:hover{ box-shadow: 0 14px 30px color-mix(in srgb, var(--accent-deep) 45%, transparent); }
 .btn.ghost{
-  background: rgba(255,255,255,0.05);
+  background: var(--tint-05);
   color: var(--ink);
   border: 1px solid var(--border);
 }
-.btn.ghost:hover{ background: rgba(255,255,255,0.08); }
+.btn.ghost:hover{ background: var(--tint-08); }
 .btn.subtle{
   background: transparent;
   color: var(--ink-2);
@@ -138,7 +206,7 @@ button{
   display: inline-flex; align-items: center; gap: 8px;
   padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-04);
   border: 1px solid var(--border);
   font-size: var(--t-12);
   color: var(--ink-2);
@@ -211,7 +279,7 @@ button{
   font-family: var(--font-serif);
   font-style: italic;
   font-size: 22px;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15);
+  box-shadow: inset 0 0 0 1px var(--tint-15);
 }
 .appbar .nm{ display: flex; flex-direction: column; line-height: 1.1; }
 .appbar .nm .t{ font-weight: 600; font-size: var(--t-14); color: var(--ink); }
@@ -220,11 +288,25 @@ button{
   display: flex; align-items: center; gap: var(--s-12);
 }
 
+.theme-toggle{
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--tint-04);
+  border: 1px solid var(--border);
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.15s, border-color 0.15s;
+}
+.theme-toggle:hover{ background: var(--tint-08); border-color: var(--border-2); transform: translateY(-1px); }
+.theme-toggle:active{ transform: scale(0.94); }
+
 .user-pill{
   display: inline-flex; align-items: center; gap: 10px;
   padding: 6px 14px 6px 6px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-04);
   border: 1px solid var(--border);
   font-size: var(--t-14);
   color: var(--ink);
@@ -245,7 +327,7 @@ button{
   border: 1px solid var(--border-2);
   border-radius: 14px;
   padding: 6px;
-  box-shadow: 0 16px 50px rgba(0,0,0,0.5);
+  box-shadow: 0 16px 50px var(--shadow-4);
   z-index: 50;
   display: none;
 }
@@ -258,7 +340,7 @@ button{
   font-size: var(--t-14);
   color: var(--ink-2);
 }
-.user-pill .menu-item:hover{ background: rgba(255,255,255,0.05); color: var(--ink); }
+.user-pill .menu-item:hover{ background: var(--tint-05); color: var(--ink); }
 .user-pill .menu-item.danger{ color: var(--danger); }
 
 .streak-chip{
@@ -328,8 +410,8 @@ button{
 }
 
 .login-card{
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--tint-04);
+  border: 1px solid var(--tint-10);
   border-radius: 20px;
   padding: var(--s-32);
   backdrop-filter: blur(8px);
@@ -337,7 +419,7 @@ button{
 .tab-row{
   display: grid;
   grid-template-columns: 1fr 1fr;
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-04);
   padding: 4px;
   border-radius: 12px;
   margin-bottom: var(--s-32);
@@ -354,7 +436,7 @@ button{
   background: color-mix(in srgb, var(--accent-deep) 70%, transparent);
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset;
+  box-shadow: 0 1px 0 var(--tint-08) inset;
 }
 
 .field-group{ display: flex; flex-direction: column; gap: var(--s-20); }
@@ -372,8 +454,8 @@ button{
   gap: 10px;
   padding: 0 14px;
   height: 48px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--tint-03);
+  border: 1px solid var(--tint-08);
   border-radius: 12px;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -415,7 +497,7 @@ button{
   border: 1px solid var(--border-2);
   border-radius: 24px;
   padding: var(--s-52);
-  box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  box-shadow: 0 30px 80px var(--shadow-5);
 }
 .onb-step{
   display: grid;
@@ -441,7 +523,7 @@ button{
 .onb-step .ill .glyph{ position: relative; z-index: 1; }
 .onb-step .ill::after{
   content:""; position: absolute; inset: -1px;
-  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.4) 100%);
+  background: radial-gradient(ellipse at center, transparent 55%, var(--shadow-3) 100%);
   pointer-events: none;
 }
 .onb-step h2{
@@ -466,7 +548,7 @@ button{
 .dots{ display: flex; gap: 8px; }
 .dots .d{
   width: 28px; height: 4px; border-radius: 2px;
-  background: rgba(255,255,255,0.08);
+  background: var(--tint-08);
 }
 .dots .d.on{ background: var(--accent); }
 
@@ -520,15 +602,15 @@ button{
   --pct: 42;
   width: 200px; height: 200px;
   border-radius: 50%;
-  background: conic-gradient(var(--ok) 0% calc(var(--pct) * 1%), rgba(255,255,255,0.10) calc(var(--pct) * 1%) 100%);
+  background: conic-gradient(var(--ok) 0% calc(var(--pct) * 1%), var(--tint-10) calc(var(--pct) * 1%) 100%);
   position: relative;
   display: grid; place-items: center;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+  box-shadow: inset 0 0 0 1px var(--tint-06);
 }
 .ring::after{
   content:""; position: absolute; inset: 14px;
   border-radius: 50%; background: var(--bg-2);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+  box-shadow: inset 0 0 0 1px var(--tint-06);
 }
 .ring .v{ position: relative; z-index: 1; text-align: center; line-height: 1; }
 .ring .v .n{
@@ -590,7 +672,7 @@ button{
 .cat-card:hover{
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--cat-color, var(--accent)) 45%, var(--border));
-  box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+  box-shadow: 0 18px 40px var(--shadow-2);
 }
 .cat-card::before{
   content:"";
@@ -604,7 +686,7 @@ button{
 .cat-card .glyph{
   width: 44px; height: 44px;
   border-radius: 12px;
-  background: rgba(255,255,255,0.05);
+  background: var(--tint-05);
   border: 1px solid var(--border);
   display: grid; place-items: center;
   font-family: var(--font-serif);
@@ -629,7 +711,7 @@ button{
 }
 .cat-card .bar{
   height: 4px;
-  background: rgba(255,255,255,0.06);
+  background: var(--tint-06);
   border-radius: 999px;
   overflow: hidden;
   margin-top: auto;
@@ -655,7 +737,7 @@ button{
   font-size: var(--t-12);
   color: var(--ink-2);
   padding: 4px 10px;
-  background: rgba(255,255,255,0.05);
+  background: var(--tint-05);
   border: 1px solid var(--border);
   border-radius: 999px;
   z-index: 2;
@@ -692,7 +774,7 @@ button{
 .lb-row .rk{
   width: 28px; height: 28px; border-radius: 8px;
   display: grid; place-items: center;
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-04);
   font-family: var(--font-mono);
   font-size: var(--t-12);
   color: var(--ink-2);
@@ -711,7 +793,7 @@ button{
 }
 .streak-row .d{
   height: 30px; border-radius: 6px;
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-04);
   display: grid; place-items: center;
   font-family: var(--font-mono);
   font-size: 10px;
@@ -772,7 +854,7 @@ button{
   margin-top: 4px;
   width: 60px; height: 60px;
   border-radius: 50%;
-  background: conic-gradient(var(--ring-c, var(--ok)) 0% calc(var(--pct) * 1%), rgba(255,255,255,0.12) calc(var(--pct) * 1%) 100%);
+  background: conic-gradient(var(--ring-c, var(--ok)) 0% calc(var(--pct) * 1%), var(--tint-12) calc(var(--pct) * 1%) 100%);
   display: grid; place-items: center;
   position: relative;
 }
@@ -801,14 +883,14 @@ button{
 .quiz-rail .rail-btn{
   width: 48px; height: 48px;
   border-radius: 12px;
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-04);
   border: 1px solid var(--border);
   display: grid; place-items: center;
   font-size: 18px;
   color: var(--ink-2);
   transition: background 0.15s, color 0.15s;
 }
-.quiz-rail .rail-btn:hover{ background: rgba(255,255,255,0.08); color: var(--ink); }
+.quiz-rail .rail-btn:hover{ background: var(--tint-08); color: var(--ink); }
 .quiz-rail .rail-btn.active{ background: var(--accent-soft); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
 .quiz-rail .rail-btn.alert{ background: rgba(248,113,113,0.12); color: var(--danger); border-color: rgba(248,113,113,0.3); }
 
@@ -839,7 +921,7 @@ button{
 .quiz-meta strong{ color: var(--ink); }
 .quiz-progress{
   height: 6px; border-radius: 999px;
-  background: rgba(255,255,255,0.05);
+  background: var(--tint-05);
   overflow: hidden;
   margin-bottom: var(--s-32);
 }
@@ -878,7 +960,7 @@ button{
   align-items: center;
   gap: var(--s-12);
   padding: 16px 20px;
-  background: rgba(255,255,255,0.025);
+  background: var(--tint-025);
   border: 1px solid var(--border);
   border-radius: 14px;
   font-size: var(--t-16);
@@ -888,14 +970,14 @@ button{
   width: 100%;
 }
 .opt:hover{
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-04);
   border-color: var(--border-2);
   transform: translateX(2px);
 }
 .opt .l{
   width: 36px; height: 36px;
   border-radius: 10px;
-  background: rgba(255,255,255,0.05);
+  background: var(--tint-05);
   border: 1px solid var(--border);
   display: grid; place-items: center;
   font-family: var(--font-mono);
@@ -940,7 +1022,7 @@ button{
 .quiz-actions .hint kbd{
   display: inline-block;
   padding: 2px 6px;
-  background: rgba(255,255,255,0.06);
+  background: var(--tint-06);
   border: 1px solid var(--border);
   border-radius: 5px;
   font-family: inherit;
@@ -980,7 +1062,7 @@ button{
 .q-grid .q{
   aspect-ratio: 1/1;
   border-radius: 8px;
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-04);
   border: 1px solid var(--border);
   display: grid; place-items: center;
   font-family: var(--font-mono);
@@ -1040,16 +1122,16 @@ button{
   --ring-c: var(--ok);
   width: 240px; height: 240px;
   border-radius: 50%;
-  background: conic-gradient(var(--ring-c) 0% calc(var(--pct) * 1%), rgba(255,255,255,0.10) calc(var(--pct) * 1%) 100%);
+  background: conic-gradient(var(--ring-c) 0% calc(var(--pct) * 1%), var(--tint-10) calc(var(--pct) * 1%) 100%);
   display: grid; place-items: center;
   position: relative;
   margin: 0 auto;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+  box-shadow: inset 0 0 0 1px var(--tint-06);
 }
 .result-ring::after{
   content:""; position: absolute; inset: 16px;
   border-radius: 50%; background: var(--bg-2);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+  box-shadow: inset 0 0 0 1px var(--tint-06);
 }
 .result-ring .v{ position: relative; z-index: 1; text-align: center; line-height: 1; }
 .result-ring .v .n{
@@ -1152,7 +1234,7 @@ button{
 .review-grid .qq:hover{ transform: scale(1.06); }
 .review-grid .qq.right{ background: rgba(52,211,153,0.18); border-color: rgba(52,211,153,0.4); color: var(--ok); }
 .review-grid .qq.wrong{ background: rgba(248,113,113,0.16); border-color: rgba(248,113,113,0.4); color: var(--danger); }
-.review-grid .qq.skip{ background: rgba(255,255,255,0.04); color: var(--ink-3); }
+.review-grid .qq.skip{ background: var(--tint-04); color: var(--ink-3); }
 .review-legend{
   display: flex; gap: var(--s-20); flex-wrap: wrap;
   margin-top: var(--s-20);
@@ -1295,7 +1377,7 @@ button{
 .pkt-card:hover{
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--cat-color, var(--accent)) 40%, var(--border));
-  box-shadow: 0 14px 36px rgba(0,0,0,0.3);
+  box-shadow: 0 14px 36px var(--shadow-1);
 }
 .pkt-card--done{
   border-color: rgba(52,211,153,0.2);
@@ -1338,7 +1420,7 @@ button{
   border: 1px solid rgba(245,158,11,0.3);
 }
 .pkt-badge--pending{
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-04);
   color: var(--ink-3);
   border: 1px solid var(--border);
 }
@@ -1353,7 +1435,7 @@ button{
 .pkt-bar{
   height: 4px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.06);
+  background: var(--tint-06);
   overflow: hidden;
 }
 .pkt-bar-fill{
@@ -1484,7 +1566,7 @@ button{
   z-index: 100;
   opacity: 0; pointer-events: none;
   transition: opacity 0.2s, transform 0.2s;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  box-shadow: 0 20px 40px var(--shadow-3);
 }
 .toast.show{ opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
 
@@ -1657,7 +1739,7 @@ button{
 .info-modal-body ul{ padding-left:20px; margin:8px 0 14px; }
 .info-modal-body li{ margin-bottom:9px; }
 .info-modal-body p{ margin:0; color:var(--ink-3); }
-.celebration-toast{ position:fixed; top:24px; left:50%; transform:translateX(-50%) translateY(-20px); background:linear-gradient(135deg, var(--ok), #15803D); color:#fff; padding:14px 22px; border-radius:12px; font-weight:700; font-size:14px; box-shadow:0 8px 24px rgba(0,0,0,0.35); z-index:2000; opacity:0; pointer-events:none; transition:opacity .3s ease, transform .3s ease; display:flex; align-items:center; gap:8px; }
+.celebration-toast{ position:fixed; top:24px; left:50%; transform:translateX(-50%) translateY(-20px); background:linear-gradient(135deg, var(--ok), #15803D); color:#fff; padding:14px 22px; border-radius:12px; font-weight:700; font-size:14px; box-shadow:0 8px 24px var(--shadow-2); z-index:2000; opacity:0; pointer-events:none; transition:opacity .3s ease, transform .3s ease; display:flex; align-items:center; gap:8px; }
 .celebration-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 .confetti-container{ position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:1999; overflow:hidden; }
 .confetti-piece{ position:absolute; width:8px; height:14px; top:-20px; opacity:.95; animation:confetti-fall 2.4s linear forwards; }
@@ -2663,6 +2745,11 @@ function showModal(title, msg, onOk, okLabel) {
     const header = document.querySelector('header.gr-header') || document.querySelector('header');
     if (!header) return;
     // Replace seluruh isi header dgn appbar baru
+    const themeToggleHtml = `
+      <button class="theme-toggle" id="themeToggleBtn" type="button" title="${_themeTitle()}" aria-label="Ganti tema">
+        <span>${_themeLabel()}</span>
+      </button>
+    `;
     let rightHtml = '';
     if (currentUser) {
       const streak = (typeof getStreak === 'function') ? getStreak() : { count: 0 };
@@ -2694,10 +2781,15 @@ function showModal(title, msg, onOk, okLabel) {
             <span class="s">MT Transjakarta</span>
           </div>
         </div>
-        <div class="right">${rightHtml}</div>
+        <div class="right">${themeToggleHtml}${rightHtml}</div>
       </header>
     `;
     // Re-wire
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    if (themeToggleBtn) themeToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleTheme();
+    });
     const brand = document.getElementById('brandHome');
     if (brand) brand.addEventListener('click', () => {
       if (currentUser) { state.view = 'home'; saveState(); render(); }
@@ -3508,7 +3600,7 @@ function showModal(title, msg, onOk, okLabel) {
               <div class="l"><span class="sw" style="background:var(--accent)"></span> Soal saat ini</div>
               <div class="l"><span class="sw" style="background:rgba(52,211,153,0.4)"></span> Sudah dijawab (${answeredCount})</div>
               <div class="l"><span class="sw" style="background:rgba(245,158,11,0.4)"></span> Ditandai (${flagCount})</div>
-              <div class="l"><span class="sw" style="background:rgba(255,255,255,0.08)"></span> Belum dijawab</div>
+              <div class="l"><span class="sw" style="background:var(--tint-08)"></span> Belum dijawab</div>
             </div>
             <button class="btn primary" id="finishBtn" style="margin-top:4px;width:100%">Selesai &amp; Submit</button>
           </aside>
@@ -3757,7 +3849,7 @@ function showModal(title, msg, onOk, okLabel) {
           <div class="review-legend">
             <div class="l"><span class="sw" style="background:rgba(52,211,153,0.5)"></span> Benar (${right})</div>
             <div class="l"><span class="sw" style="background:rgba(248,113,113,0.5)"></span> Salah (${wrong})</div>
-            <div class="l"><span class="sw" style="background:rgba(255,255,255,0.1)"></span> Dilewati (${skip})</div>
+            <div class="l"><span class="sw" style="background:var(--tint-10)"></span> Dilewati (${skip})</div>
           </div>
           <div id="revPanel" class="rev-panel">
             <div class="rev-placeholder">&#x1F446; Pilih nomor soal di atas untuk melihat pembahasan.</div>
