@@ -4473,6 +4473,7 @@ function showModal(title, msg, onOk, okLabel) {
       roundTimeLeft: GG_ROUND_SECONDS,
       breakTimeLeft: 0,
       questions: [],
+      allQuestions: [],
       nextQuestionNum: 1,
       startedAt: Date.now(),
       finishedAt: null,
@@ -4668,7 +4669,11 @@ function showModal(title, msg, onOk, okLabel) {
         }
         
         if (g.roundTimeLeft <= 0) {
-          // Round over, start break or finish
+          // Round over — arsipkan soal babak ini dulu sebelum di-reset,
+          // dulu babak lama ke-wipe waktu seedGanjilGenapRound() jalan
+          // sehingga skor akhir cuma ngitung babak terakhir.
+          g.allQuestions = (g.allQuestions || []).concat(g.questions);
+          g.questions = [];
           g.round++;
           if (g.round >= GG_TOTAL_ROUNDS) {
             // All rounds done
@@ -4708,14 +4713,18 @@ function showModal(title, msg, onOk, okLabel) {
     
     g.finishedAt = Date.now();
     g.timedOut = !!timedOut;
-    
+
+    // Gabung semua babak yang udah diarsipkan + babak yang lagi jalan/baru
+    // disubmit manual (belum sempat diarsipkan timer kalau keluar di tengah babak).
+    const allQ = (g.allQuestions || []).concat(g.questions || []);
+
     // Calculate scores per round
     let totalCorrect = 0;
-    let totalQuestions = g.questions.length;
-    let totalAnswered = g.questions.filter(q => q.userAnswer !== undefined).length;
+    let totalQuestions = allQ.length;
+    let totalAnswered = allQ.filter(q => q.userAnswer !== undefined).length;
     const roundStats = [];
     for (let r = 0; r < GG_TOTAL_ROUNDS; r++) {
-      const rq = g.questions.filter(q => q.round === r);
+      const rq = allQ.filter(q => q.round === r);
       if (rq.length === 0) {
         roundStats.push({ round: r, correct: 0, wrong: 0, total: 0, answered: 0, score: 0 });
         continue;
