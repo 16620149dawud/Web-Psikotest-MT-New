@@ -1280,6 +1280,16 @@ button{
   display: flex; flex-direction: column;
   gap: var(--s-20);
 }
+/* Golden ratio split (φ ≈ 1.618) — paket di kiri, leaderboard di kanan,
+   sama seperti proporsi .home-grid. */
+.pkt-body-grid{
+  display: grid;
+  grid-template-columns: 1.618fr 1fr;
+  gap: var(--s-20);
+  align-items: start;
+}
+@media (max-width: 920px){ .pkt-body-grid{ grid-template-columns: 1fr; } }
+.pkt-body-grid .side-card{ position: sticky; top: 84px; }
 
 .pkt-hero{
   position: relative;
@@ -3492,7 +3502,7 @@ function showModal(title, msg, onOk, okLabel) {
 
     function renderPktLeaderboard() {
       return `
-        <div class="side-card" style="margin-bottom:var(--s-20)">
+        <div class="side-card">
           <h4>
             <span>&#x1F3C6; Leaderboard &middot; ${escapeHtml(section.title)}</span>
             <span style="color:var(--ink-3);font-family:var(--font-sans);text-transform:none;letter-spacing:0;font-weight:400">Top 5</span>
@@ -3516,8 +3526,12 @@ function showModal(title, msg, onOk, okLabel) {
             <button class="btn ghost sm" id="pktBack">&larr; ${pktBackLabel}</button>
           </div>
           ${renderHero()}
-          ${isLeaderboardEnabled() ? renderPktLeaderboard() : ''}
-          ${renderGrid()}
+          ${isLeaderboardEnabled() ? `
+            <div class="pkt-body-grid">
+              <div>${renderGrid()}</div>
+              <aside>${renderPktLeaderboard()}</aside>
+            </div>
+          ` : renderGrid()}
         </div>
       `;
       wire();
