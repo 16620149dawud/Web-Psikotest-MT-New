@@ -1280,16 +1280,22 @@ button{
   display: flex; flex-direction: column;
   gap: var(--s-20);
 }
-/* Golden ratio split (φ ≈ 1.618) — paket di kiri, leaderboard di kanan,
-   sama seperti proporsi .home-grid. */
+/* Proporsi emas (≈ φ) — paket di kiri, leaderboard di kanan, sama rasio
+   dengan .home-grid supaya konsisten & sidebar gak kelihatan kebesaran. */
 .pkt-body-grid{
   display: grid;
-  grid-template-columns: 1.618fr 1fr;
+  grid-template-columns: 1.7fr 1fr;
   gap: var(--s-20);
   align-items: start;
 }
 @media (max-width: 920px){ .pkt-body-grid{ grid-template-columns: 1fr; } }
 .pkt-body-grid .side-card{ position: sticky; top: 84px; }
+/* Kolom kiri lebih sempit dari full-width — turunkan pkt-grid dari 3 ke 2
+   kolom (kayak .cat-grid) biar kartu paket gak kepepet & judul gak wrap.
+   Hanya berlaku selama sidebar masih di samping (>920px, lihat di atas). */
+@media (min-width: 921px){
+  .pkt-body-grid .pkt-grid{ grid-template-columns: repeat(2, 1fr); }
+}
 
 .pkt-hero{
   position: relative;
