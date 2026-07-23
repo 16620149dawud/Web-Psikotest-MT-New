@@ -2428,7 +2428,78 @@ button{
     }
     return data || [];
   }
-  
+
+  // Widget leaderboard "Top 5" dgn dropdown filter, dipakai di beranda
+  // (scopeRootId=null, semua kategori top-level) dan di dalam tiap menu
+  // bundle (scopeRootId=id menu itu, cuma anak-anaknya sendiri yang ikut
+  // dihitung). Naik-turun kedalaman id soal (mis. toeic__minggu_1__paket_1)
+  // ditangani lewat findAncestorUnder, bukan tebak-tebakan pola nama.
+  async function loadAndWireLeaderboardWidget(selectId, contentId, scopeRootId) {
+    const el = document.getElementById(contentId);
+    if (!el) return;
+    try {
+      const lb = await fetchLeaderboard();
+      if (!el.isConnected) return; // pindah halaman sebelum fetch selesai
+      if (!lb || lb.length === 0) {
+        el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:13px">Belum ada data leaderboard.</div>`;
+        return;
+      }
+      const sel = document.getElementById(selectId);
+      function paint() {
+        const f = sel ? sel.value : 'all';
+        const rows = lb.filter(r => {
+          const anc = findAncestorUnder(r.section_id, scopeRootId);
+          if (anc === null) return false; // di luar cakupan scope widget ini
+          return f === 'all' || anc === f;
+        });
+        if (!rows.length) {
+          el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:13px">Belum ada skor untuk ${f === 'all' ? 'menu ini' : 'tes ini'}.</div>`;
+          return;
+        }
+        const byUser = {};
+        rows.forEach(row => {
+          const uid = row.user_id;
+          if (!byUser[uid]) byUser[uid] = {
+            user_id: uid,
+            display_name: (row.users && row.users.display_name) || (row.users && row.users.username) || '?',
+            scores: [],
+          };
+          byUser[uid].scores.push(row.score);
+        });
+        const aggList = Object.values(byUser).map(u => ({
+          ...u,
+          avg: Math.round(u.scores.reduce((a, b) => a + b, 0) / u.scores.length),
+          best: Math.max.apply(null, u.scores),
+          done: u.scores.length,
+        })).sort((a, b) => (f === 'all' ? b.avg - a.avg : b.best - a.best)).slice(0, 5);
+
+        el.innerHTML = aggList.map((u, i) => {
+          const rankCls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+          const isMe = currentUser && u.user_id === currentUser.id;
+          const val = f === 'all' ? u.avg : u.best;
+          const sub = f === 'all'
+            ? u.done + ' section selesai'
+            : u.done + '&times; main &middot; skor terbaik';
+          return `
+            <div class="lb-row ${rankCls}${isMe ? ' me' : ''}">
+              <div class="rk">${i + 1}</div>
+              <div class="nm">
+                <strong>${escapeHtml(u.display_name)}${isMe ? '<span style="margin-left:6px;color:var(--accent);font-size:11px;font-family:var(--font-mono)">&middot; kamu</span>' : ''}</strong>
+                <small>${sub}</small>
+              </div>
+              <div class="sc">${val}%</div>
+            </div>
+          `;
+        }).join('');
+      }
+      if (sel) sel.addEventListener('change', paint);
+      paint();
+    } catch (e) {
+      console.error('lb fetch err', e);
+      if (el.isConnected) el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:13px">Gagal memuat leaderboard.</div>`;
+    }
+  }
+
   // ============ UTILS ============
   function fmtTime(seconds) {
     if (seconds < 0) seconds = 0;
@@ -2454,6 +2525,27 @@ button{
       const p = QUIZ_DATA[pid];
       return p.isBundled && p.bundleIds && p.bundleIds.includes(sectionId);
     }) || null;
+  }
+
+  // Naik dari sectionId lewat rantai parent sampai ketemu leluhur yang
+  // parent-nya PERSIS rootId (dipakai buat leaderboard per-menu: petakan
+  // paket yang dalam banget, mis. toeic__minggu_1__paket_1, ke anak
+  // langsung dari menu yang lagi dilihat, mis. toeic__minggu_1).
+  // rootId null berarti naik terus sampai puncak (leaderboard global).
+  // Balikin null kalau sectionId ternyata bukan keturunan rootId.
+  function findAncestorUnder(sectionId, rootId) {
+    let cur = sectionId;
+    for (let guard = 0; guard < 10; guard++) {
+      const p = findParentBundleId(cur);
+      if (rootId === null) {
+        if (p === null) return cur;
+      } else {
+        if (p === rootId) return cur;
+        if (p === null) return null;
+      }
+      cur = p;
+    }
+    return cur;
   }
 
   function getBundleStatus(sectionId) {
@@ -2868,7 +2960,7 @@ function showModal(title, msg, onOk, okLabel) {
     const lbBtn = document.getElementById('leaderboardBtn');
     if (lbBtn) lbBtn.addEventListener('click', () => {
       if (userMenu) userMenu.classList.remove('open');
-      state.view = 'leaderboard'; saveState(); render();
+      state.lbScope = null; state.view = 'leaderboard'; saveState(); render();
     });
   }
 
@@ -3196,7 +3288,7 @@ function showModal(title, msg, onOk, okLabel) {
     }
     const ctaLb = document.getElementById('ctaLeaderboard');
     if (ctaLb) ctaLb.addEventListener('click', () => {
-      state.view = 'leaderboard'; saveState(); render();
+      state.lbScope = null; state.view = 'leaderboard'; saveState(); render();
     });
     document.querySelectorAll('[data-section]').forEach(el => {
       el.addEventListener('click', () => {
@@ -3209,67 +3301,7 @@ function showModal(title, msg, onOk, okLabel) {
     });
 
     // Load leaderboard async — bisa difilter per tes lewat dropdown
-    try {
-      const lb = await fetchLeaderboard();
-      const lbEl = document.getElementById('lbContent');
-      if (!lbEl) return;
-      if (!lb || lb.length === 0) {
-        lbEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:13px">Belum ada data leaderboard.</div>`;
-        return;
-      }
-      const lbSel = document.getElementById('lbSection');
-      function paintLb() {
-        const f = lbSel ? lbSel.value : 'all';
-        // 'verbal' juga mencakup paket bundling 'verbal__paket_N'
-        const rows = f === 'all' ? lb : lb.filter(r =>
-          r.section_id === f || (r.section_id && r.section_id.indexOf(f + '__') === 0));
-        if (!rows.length) {
-          lbEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:13px">Belum ada skor untuk tes ini.</div>`;
-          return;
-        }
-        const byUser = {};
-        rows.forEach(row => {
-          const uid = row.user_id;
-          if (!byUser[uid]) byUser[uid] = {
-            user_id: uid,
-            display_name: (row.users && row.users.display_name) || (row.users && row.users.username) || '?',
-            scores: [],
-          };
-          byUser[uid].scores.push(row.score);
-        });
-        const aggList = Object.values(byUser).map(u => ({
-          ...u,
-          avg: Math.round(u.scores.reduce((a,b)=>a+b,0) / u.scores.length),
-          best: Math.max.apply(null, u.scores),
-          done: u.scores.length,
-        })).sort((a,b) => (f === 'all' ? b.avg - a.avg : b.best - a.best)).slice(0, 5);
-
-        lbEl.innerHTML = aggList.map((u, i) => {
-          const rankCls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-          const isMe = currentUser && u.user_id === currentUser.id;
-          const val = f === 'all' ? u.avg : u.best;
-          const sub = f === 'all'
-            ? u.done + ' section selesai'
-            : u.done + '&times; main &middot; skor terbaik';
-          return `
-            <div class="lb-row ${rankCls}${isMe?' me':''}">
-              <div class="rk">${i+1}</div>
-              <div class="nm">
-                <strong>${escapeHtml(u.display_name)}${isMe?'<span style="margin-left:6px;color:var(--accent);font-size:11px;font-family:var(--font-mono)">&middot; kamu</span>':''}</strong>
-                <small>${sub}</small>
-              </div>
-              <div class="sc">${val}%</div>
-            </div>
-          `;
-        }).join('');
-      }
-      if (lbSel) lbSel.addEventListener('change', paintLb);
-      paintLb();
-    } catch (e) {
-      console.error('lb fetch err', e);
-      const lbEl = document.getElementById('lbContent');
-      if (lbEl) lbEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--ink-3);font-size:13px">Gagal memuat leaderboard.</div>`;
-    }
+    loadAndWireLeaderboardWidget('lbSection', 'lbContent', null);
 
     // Auto-resume modal kalau ada paused session
     if (!window._autoResumeChecked && Object.keys(pausedSessionsCache || {}).length > 0) {
@@ -3458,6 +3490,25 @@ function showModal(title, msg, onOk, okLabel) {
       }).join('')}</div>`;
     }
 
+    function renderPktLeaderboard() {
+      return `
+        <div class="side-card" style="margin-bottom:var(--s-20)">
+          <h4>
+            <span>&#x1F3C6; Leaderboard &middot; ${escapeHtml(section.title)}</span>
+            <span style="color:var(--ink-3);font-family:var(--font-sans);text-transform:none;letter-spacing:0;font-weight:400">Top 5</span>
+          </h4>
+          <select id="pktLbSelect" aria-label="Filter leaderboard per ${escapeHtml(_kindKata)}" style="width:100%;margin-bottom:10px;background:var(--bg-2);color:var(--ink);border:1px solid var(--border-2);border-radius:8px;padding:7px 10px;font-size:12px;font-family:inherit;cursor:pointer">
+            <option value="all">&#x1F30D; Semua ${escapeHtml(_kindKata)} (rata-rata)</option>
+            ${bundleIds.map(bid => `<option value="${bid}">${escapeHtml((QUIZ_DATA[bid] || {}).title || bid)}</option>`).join('')}
+          </select>
+          <div id="pktLbContent"><span class="sr-only">Memuat leaderboard&hellip;</span>
+            <div class="skeleton-row" style="height:36px;border-radius:8px;margin-bottom:6px;background:linear-gradient(90deg,var(--border) 25%,var(--surface-2) 50%,var(--border) 75%);background-size:200% 100%"></div>
+            <div class="skeleton-row" style="height:36px;border-radius:8px;margin-bottom:6px;background:linear-gradient(90deg,var(--border) 25%,var(--surface-2) 50%,var(--border) 75%);background-size:200% 100%"></div>
+          </div>
+        </div>
+      `;
+    }
+
     function paint() {
       app.innerHTML = `
         <div class="pkt-shell">
@@ -3465,10 +3516,12 @@ function showModal(title, msg, onOk, okLabel) {
             <button class="btn ghost sm" id="pktBack">&larr; ${pktBackLabel}</button>
           </div>
           ${renderHero()}
+          ${isLeaderboardEnabled() ? renderPktLeaderboard() : ''}
           ${renderGrid()}
         </div>
       `;
       wire();
+      if (isLeaderboardEnabled()) loadAndWireLeaderboardWidget('pktLbSelect', 'pktLbContent', sectionId);
     }
 
     function wire() {
@@ -5479,26 +5532,34 @@ function showModal(title, msg, onOk, okLabel) {
       return;
     }
     
-    const sections = getOrderedSections();
+    const lbScope = state.lbScope || null;
+    const lbScopeSection = lbScope ? QUIZ_DATA[lbScope] : null;
+    const sections = lbScopeSection
+      ? (lbScopeSection.bundleIds || []).map(id => ({ id, title: (QUIZ_DATA[id] || {}).title || id }))
+      : getOrderedSections();
     const tabs = [{ id: 'total', title: 'Total' }, ...sections];
-    
+    const lbTitle = lbScopeSection ? '🏆 Leaderboard · ' + escapeHtml(lbScopeSection.title) : '🏆 Leaderboard';
+    const lbBackLabel = lbScopeSection ? '← Kembali ke Menu' : '← Home';
+
     app.innerHTML = `
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap">
-          <h2 style="font-size:22px">🏆 Leaderboard</h2>
-          <button class="btn btn-secondary btn-sm" id="backFromLbBtn">← Home</button>
+          <h2 style="font-size:22px">${lbTitle}</h2>
+          <button class="btn btn-secondary btn-sm" id="backFromLbBtn">${lbBackLabel}</button>
         </div>
-        
+
         <div class="lb-tabs">
-          ${tabs.map(t => `<button class="lb-tab ${state.lbTab === t.id ? 'active' : ''}" data-tab="${t.id}">${t.title}</button>`).join('')}
+          ${tabs.map(t => `<button class="lb-tab ${state.lbTab === t.id ? 'active' : ''}" data-tab="${t.id}">${escapeHtml(t.title)}</button>`).join('')}
         </div>
-        
+
         <div id="lbContent" class="lb-loading"><span class="sr-only">Memuat leaderboard...</span><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div></div>
       </div>
     `;
-    
+
     document.getElementById('backFromLbBtn').addEventListener('click', () => {
-      state.view = 'home'; saveState(); render();
+      if (lbScope) { state.activeSection = lbScope; state.view = 'bundle_select'; }
+      else { state.view = 'home'; }
+      saveState(); render();
     });
     
     document.querySelectorAll('.lb-tab').forEach(el => {
@@ -5537,8 +5598,11 @@ function showModal(title, msg, onOk, okLabel) {
           sections: {},
         };
       }
-      // Petakan bundle ID (verbal__paket_1) ke parent ID (verbal) untuk leaderboard
-      const parentId = s.section_id.includes('__') ? s.section_id.split('__')[0] : s.section_id;
+      // Petakan id sedalam apapun (mis. toeic__minggu_1__paket_1) naik ke
+      // level tab yang lagi ditampilkan: top-level kalau global, atau anak
+      // langsung dari lbScope kalau lagi lihat leaderboard satu menu.
+      const parentId = findAncestorUnder(s.section_id, lbScope);
+      if (parentId === null) return; // di luar cakupan lbScope, skip
       const cur = byUser[uid].sections[parentId];
       if (cur === undefined || s.score > cur) {
         byUser[uid].sections[parentId] = s.score;
