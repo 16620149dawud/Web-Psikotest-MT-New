@@ -808,6 +808,58 @@ textarea:focus-visible,
 .cat-card .status.paused{ color: var(--warn); border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.1); }
 .cat-card .status.done{ color: var(--ok); border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.1); }
 
+/* ==========================================================
+   PETA KEKUATAN — per-category strength breakdown
+   ========================================================== */
+.sm-shell{ max-width: 900px; margin: 0 auto; padding: var(--s-32) var(--s-32) var(--s-84); }
+.sm-top{ margin-bottom: var(--s-32); }
+.sm-top h2{ margin: var(--s-12) 0 var(--s-8); }
+.sm-top p{ color: var(--ink-2); margin: 0; }
+.sm-grid{ display: flex; flex-direction: column; gap: var(--s-12); }
+.sm-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: var(--s-20);
+}
+.sm-head{ display: flex; align-items: center; gap: var(--s-12); }
+.sm-head .glyph{
+  width: 44px; height: 44px; flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--tint-05);
+  border: 1px solid var(--border);
+  display: grid; place-items: center;
+  font-family: var(--font-serif); font-style: italic; font-size: 22px;
+  color: var(--cat-color, var(--accent));
+}
+.sm-head-text{ flex: 1; min-width: 0; }
+.sm-title{ font-size: var(--t-16); font-weight: 600; color: var(--ink); }
+.sm-sub{ font-size: var(--t-12); color: var(--ink-3); margin-top: 2px; }
+.sm-avg{
+  font-family: var(--font-serif); font-style: italic;
+  font-size: 26px; flex-shrink: 0;
+}
+.sm-children{
+  margin-top: var(--s-20); padding-top: var(--s-12);
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.sm-child{ display: grid; grid-template-columns: 1fr 3fr auto; align-items: center; gap: 10px; }
+.smc-label{ font-size: var(--t-12); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.smc-bar{ height: 6px; border-radius: 999px; background: var(--tint-06); overflow: hidden; }
+.smc-bar i{ display: block; height: 100%; border-radius: 999px; }
+.smc-score{ font-family: var(--font-mono); font-size: var(--t-12); font-weight: 700; min-width: 34px; text-align: right; }
+.sm-empty{
+  text-align: center; padding: var(--s-84) var(--s-32);
+  background: var(--surface); border: 1px dashed var(--border-2); border-radius: 16px;
+  color: var(--ink-2);
+}
+.sm-empty .glyph{ font-size: 32px; margin-bottom: var(--s-12); color: var(--ink-3); }
+@media (max-width: 620px){
+  .sm-child{ grid-template-columns: 1fr; gap: 2px; }
+  .smc-score{ text-align: left; }
+}
+
 .side-card{
   background: var(--surface);
   border: 1px solid var(--border);
@@ -2698,6 +2750,55 @@ body:has(.materi-shell.reading-mode){ background:#F4ECD8; }
     return (s.questions || []).length;
   }
 
+  // Cari semua leaf (paket soal asli) di bawah id, turun lewat nested bundle
+  // sedalam apapun. Dipakai Peta Kekuatan buat pecah kategori jadi sub-skor.
+  function getLeafSections(id) {
+    const s = QUIZ_DATA[id];
+    if (!s) return [];
+    if (s.isBundled && s.bundleIds) {
+      return s.bundleIds.reduce((acc, cid) => acc.concat(getLeafSections(cid)), []);
+    }
+    return [{ id, title: s.title }];
+  }
+
+  function scoreColor(score) {
+    if (score === null || score === undefined) return 'var(--ink-3)';
+    if (score >= 70) return 'var(--ok)';
+    if (score >= 50) return 'var(--warn)';
+    return 'var(--danger)';
+  }
+
+  // Rata-rata skor terbaik per kategori top-level, plus rincian per sub-tes
+  // (misal MT Transjakarta -> Verbal/Numerik/Spasial/...). Cuma turun SATU
+  // level bundle buat rincian (bukan sampai leaf paling dalam) -- verbal dkk
+  // sendiri masih bundle 8 paket, jadi skornya dirata-ratain jadi satu baris,
+  // bukan dipecah lagi jadi 8. Murni baca ulang state.scores yang udah ada.
+  function computeStrengthMap() {
+    return getOrderedSections().map(top => {
+      const s = QUIZ_DATA[top.id];
+      const rows = (s.isBundled && s.bundleIds ? s.bundleIds : [top.id]).map(cid => {
+        const cs = QUIZ_DATA[cid];
+        const leaves = getLeafSections(cid);
+        const scored = leaves.map(lf => {
+          const sc = state.scores[lf.id];
+          return sc ? (sc.bestScore || sc.score || 0) : null;
+        }).filter(x => x !== null);
+        const best = scored.length ? Math.round(scored.reduce((a, b) => a + b, 0) / scored.length) : null;
+        return { id: cid, title: cs.title, best };
+      });
+      const attempted = rows.filter(r => r.best !== null);
+      const avg = attempted.length ? Math.round(attempted.reduce((s2, r) => s2 + r.best, 0) / attempted.length) : null;
+      return {
+        id: top.id,
+        title: top.title,
+        avg,
+        attemptedCount: attempted.length,
+        totalCount: rows.length,
+        children: attempted.slice().sort((a, b) => a.best - b.best)
+      };
+    });
+  }
+
   function getBundleStatus(sectionId) {
     const ids = getBundleIds(sectionId);
     if (ids.length === 0) return 'pending';
@@ -3156,6 +3257,7 @@ function showModal(title, msg, onOk, okLabel) {
     else if (state.view === 'quiz') renderQuiz();
     else if (state.view === 'result') renderResult();
     else if (state.view === 'materi') renderMateri();
+    else if (state.view === 'strength_map') renderStrengthMap();
     else { state.view = 'home'; render(); }
   }
 
@@ -3344,6 +3446,7 @@ function showModal(title, msg, onOk, okLabel) {
               <span class="cta-short">Lanjutkan &rarr;</span>
             </button>` : ''}
             <button class="btn ghost" id="ctaLeaderboard">Lihat Leaderboard</button>
+            <button class="btn ghost" id="ctaStrengthMap">Peta Kekuatan</button>
           </div>
         </div>
         <div class="hero-ring">
@@ -3486,6 +3589,10 @@ function showModal(title, msg, onOk, okLabel) {
     if (ctaLb) ctaLb.addEventListener('click', () => {
       state.lbScope = null; state.view = 'leaderboard'; saveState(); render();
     });
+    const ctaSm = document.getElementById('ctaStrengthMap');
+    if (ctaSm) ctaSm.addEventListener('click', () => {
+      state.view = 'strength_map'; saveState(); render();
+    });
     document.querySelectorAll('[data-section]').forEach(el => {
       el.addEventListener('click', () => {
         const id = el.getAttribute('data-section');
@@ -3505,6 +3612,66 @@ function showModal(title, msg, onOk, okLabel) {
       const ids = Object.keys(pausedSessionsCache);
       setTimeout(() => showPausedOptionsModal(ids[0]), 300);
     }
+  }
+
+  // ---------- PETA KEKUATAN (per-category strength breakdown) ----------
+  function renderStrengthMap() {
+    const map = computeStrengthMap();
+    const hasAnyData = map.some(c => c.avg !== null);
+
+    const cardsHtml = map.map(cat => {
+      const color = catColor(cat.id);
+      const glyph = catGlyph(cat.id);
+      const avgLabel = cat.avg !== null ? cat.avg + '%' : '&mdash;';
+      const subLabel = cat.totalCount > 1
+        ? `${cat.attemptedCount}/${cat.totalCount} paket diujikan`
+        : (cat.avg !== null ? 'Sudah diujikan' : 'Belum diujikan');
+      const childrenHtml = cat.children.length > 1 ? `
+        <div class="sm-children">
+          ${cat.children.map(c => `
+            <div class="sm-child">
+              <span class="smc-label">${escapeHtml(c.title)}</span>
+              <div class="smc-bar"><i style="width:${c.best}%;background:${scoreColor(c.best)}"></i></div>
+              <span class="smc-score" style="color:${scoreColor(c.best)}">${c.best}%</span>
+            </div>
+          `).join('')}
+        </div>
+      ` : '';
+      return `
+        <article class="sm-card" style="--cat-color:${color}">
+          <div class="sm-head">
+            <div class="glyph">${glyph}</div>
+            <div class="sm-head-text">
+              <div class="sm-title">${escapeHtml(cat.title)}</div>
+              <div class="sm-sub">${subLabel}</div>
+            </div>
+            <div class="sm-avg" style="color:${scoreColor(cat.avg)}">${avgLabel}</div>
+          </div>
+          ${childrenHtml}
+        </article>
+      `;
+    }).join('');
+
+    app.innerHTML = `
+      <div class="sm-shell">
+        <div class="sm-top">
+          <button class="btn ghost sm" id="smBack">&larr; Kembali ke Beranda</button>
+          <h2 class="h-display">Peta Kekuatan</h2>
+          <p>Rata-rata skor terbaikmu per kategori &mdash; biar tau paket mana yang perlu diulang.</p>
+        </div>
+        ${hasAnyData ? `<div class="sm-grid">${cardsHtml}</div>` : `
+          <div class="sm-empty">
+            <div class="glyph">${icon('bookOpen')}</div>
+            <p>Belum ada paket yang diselesaikan. Kerjakan satu paket dulu, peta kekuatanmu bakal muncul di sini.</p>
+          </div>
+        `}
+      </div>
+    `;
+
+    const back = document.getElementById('smBack');
+    if (back) back.addEventListener('click', () => {
+      state.view = 'home'; saveState(); render();
+    });
   }
 
   // ---------- PACKET SELECT ----------
