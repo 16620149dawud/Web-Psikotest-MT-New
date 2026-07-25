@@ -188,6 +188,7 @@ button{
   transition: top 0.15s;
 }
 .skip-link:focus{ top: 0; }
+.icn{ display: inline-block; vertical-align: -0.15em; flex-shrink: 0; }
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -2086,15 +2087,15 @@ textarea:focus-visible,
 
 <div id="settingsModal" class="modal-bg hidden" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
   <div class="modal info-modal">
-    <h2 id="settingsModalTitle">&#x2699;&#xFE0F; Pengaturan Akun</h2>
+    <h2 id="settingsModalTitle"><svg class="icn" viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false"><line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="6" r="2.4"/><line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="12" r="2.4"/><line x1="4" y1="18" x2="20" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="11" cy="18" r="2.4"/></svg> Pengaturan Akun</h2>
     <div class="settings-form">
       <div class="form-section">
-        <h3>&#x1F464; Profil</h3>
+        <h3><svg class="icn" viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21 A8 8 0 0 1 20 21 Z"/></svg> Profil</h3>
         <label for="settingsDisplayName">Nama Tampilan</label>
         <input type="text" id="settingsDisplayName" maxlength="40" autocomplete="nickname">
       </div>
       <div class="form-section">
-        <h3>&#x1F511; Ganti Password</h3>
+        <h3><svg class="icn" viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 A4 4 0 0 1 16 7 V11" fill="none" stroke="currentColor" stroke-width="2"/></svg> Ganti Password</h3>
         <label for="settingsCurrPw">Password Saat Ini</label>
         <input type="password" id="settingsCurrPw" autocomplete="current-password">
         <div style="height:8px"></div>
@@ -2909,6 +2910,30 @@ function showModal(title, msg, onOk, okLabel) {
     bg.onclick = (e) => { if (e.target === bg) close(); };
   }
   
+  // ============ ICON SET (inline SVG, replaces ad-hoc emoji glyphs) ============
+  const ICON_PATHS = {
+    pause: '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+    trophy: '<path d="M6 4 L18 4 L18 9 A6 6 0 0 1 6 9 Z"/><path d="M18 5 A3 4 0 0 1 18 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M6 5 A3 4 0 0 0 6 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="11" y="9" width="2" height="6"/><rect x="8" y="17" width="8" height="2" rx="1"/>',
+    settings: '<line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="6" r="2.4"/><line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="12" r="2.4"/><line x1="4" y1="18" x2="20" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="11" cy="18" r="2.4"/>',
+    person: '<circle cx="12" cy="8" r="4"/><path d="M4 21 A8 8 0 0 1 20 21 Z"/>',
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 A4 4 0 0 1 16 7 V11" fill="none" stroke="currentColor" stroke-width="2"/>',
+    chevronDown: '<polyline points="5 8 12 15 19 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+    logout: '<rect x="4" y="4" width="10" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><line x1="10" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><polyline points="17 8 21 12 17 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+    folder: '<path d="M3 6 H9 L11 8 H21 V19 A1 1 0 0 1 20 20 H4 A1 1 0 0 1 3 19 Z"/>',
+    bookOpen: '<path d="M12 5 L3 4 L3 18 L12 20 L21 18 L21 4 Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><line x1="12" y1="5" x2="12" y2="20" stroke="currentColor" stroke-width="1.8"/>',
+    flag: '<line x1="5" y1="3" x2="5" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M5 4 L19 4 L15 8 L19 12 L5 12 Z"/>',
+    pencil: '<path d="M4 20 L4 16.5 L15.5 5 L19 8.5 L7.5 20 Z"/><path d="M15.5 5 L17 3.5 L20.5 7 L19 8.5 Z"/>',
+    redo: '<path d="M20 12 A8 8 0 1 1 12 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><polyline points="8 4 12 4 12 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+    check: '<polyline points="4 13 9 18 20 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>',
+    x: '<line x1="5" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><line x1="19" y1="5" x2="5" y2="19" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
+    menu: '<line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="4" y1="18" x2="20" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+  };
+  function icon(name, cls) {
+    const body = ICON_PATHS[name];
+    if (!body) return '';
+    return '<svg class="icn' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false">' + body + '</svg>';
+  }
+
   function escapeHtml(s) {
     if (typeof s !== 'string') return s || '';
     return s
@@ -2989,11 +3014,11 @@ function showModal(title, msg, onOk, okLabel) {
         <div class="user-pill" id="userPill">
           <span class="av">${av}</span>
           <span class="nm-text">${name}</span>
-          <span style="color:var(--ink-3);font-size:11px">&#x25BE;</span>
+          <span style="color:var(--ink-3);font-size:11px">${icon('chevronDown')}</span>
           <div class="menu" id="userMenu">
-            <button class="menu-item" id="settingsBtn">&#x2699; Pengaturan Akun</button>
-            <button class="menu-item" id="leaderboardBtn">&#x1F3C6; Leaderboard</button>
-            <button class="menu-item danger" id="logoutBtn">&#x23CF; Keluar</button>
+            <button class="menu-item" id="settingsBtn">${icon('settings')} Pengaturan Akun</button>
+            <button class="menu-item" id="leaderboardBtn">${icon('trophy')} Leaderboard</button>
+            <button class="menu-item danger" id="logoutBtn">${icon('logout')} Keluar</button>
           </div>
         </div>
       `;
@@ -3100,7 +3125,7 @@ function showModal(title, msg, onOk, okLabel) {
               <div>
                 <label class="field-label" for="authDisplayName">Nama Tampilan</label>
                 <div class="field">
-                  <span class="ico" aria-hidden="true">&#x1F464;</span>
+                  <span class="ico" aria-hidden="true">${icon('person')}</span>
                   <input id="authDisplayName" type="text" placeholder="cth: Budi Hartono" autocomplete="nickname">
                 </div>
                 <div class="field-helper"><span>Nama ini muncul di leaderboard.</span><span></span></div>
@@ -3117,7 +3142,7 @@ function showModal(title, msg, onOk, okLabel) {
               <div>
                 <label class="field-label" for="authPassword">Password</label>
                 <div class="field">
-                  <span class="ico" aria-hidden="true">&#x1F512;</span>
+                  <span class="ico" aria-hidden="true">${icon('lock')}</span>
                   <input id="authPassword" type="password" placeholder="Minimal 6 karakter"
                     autocomplete="${modeArg==='register'?'new-password':'current-password'}">
                   <button type="button" class="pw-toggle-btn" id="pwToggleBtn" aria-label="Tampilkan password" aria-pressed="false">Lihat</button>
@@ -3289,7 +3314,7 @@ function showModal(title, msg, onOk, okLabel) {
       const pktCount = s.isBundled ? (s.bundleIds || []).length : 1;
 
       let statusHtml = '';
-      if (st === 'paused') statusHtml = `<span class="status paused">&#x23F8; Ditunda</span>`;
+      if (st === 'paused') statusHtml = `<span class="status paused">${icon('pause')} Ditunda</span>`;
       else if (st === 'done') statusHtml = `<span class="status done">&check; ${best}%</span>`;
 
       let footLeft = 'Belum mulai';
@@ -3342,7 +3367,7 @@ function showModal(title, msg, onOk, okLabel) {
       <aside>
         <div class="side-card">
           <h4>
-            <span>&#x1F3C6; Leaderboard</span>
+            <span>${icon('trophy')} Leaderboard</span>
             <span style="color:var(--ink-3);font-family:var(--font-sans);text-transform:none;letter-spacing:0;font-weight:400">Top 5</span>
           </h4>
           <select id="lbSection" aria-label="Filter leaderboard per tes" style="width:100%;margin-bottom:10px;background:var(--bg-2);color:var(--ink);border:1px solid var(--border-2);border-radius:8px;padding:7px 10px;font-size:var(--t-12);font-family:inherit;cursor:pointer">
@@ -3504,11 +3529,11 @@ function showModal(title, msg, onOk, okLabel) {
       }
       if (p.status === 'done') return { text: 'Terbaik ' + p.bestScore + '%', cls: 'done' };
       if (p.status === 'in_progress') return { text: 'Sedang berjalan', cls: 'progress' };
-      if (p.status === 'paused') return { text: '⏸ Ditunda', cls: 'paused' };
+      if (p.status === 'paused') return { text: icon('pause') + ' Ditunda', cls: 'paused' };
       return { text: 'Belum mulai', cls: 'pending' };
     }
     function actionLabel(p) {
-      if (p.isSubBundle) return '&#x1F4C2; Buka Semua Paket &rarr;';
+      if (p.isSubBundle) return icon('folder') + ' Buka Semua Paket &rarr;';
       if (p.status === 'done') return 'Ulangi';
       if (p.status === 'in_progress' || p.status === 'paused') return 'Lanjutkan &rarr;';
       return 'Mulai &rarr;';
@@ -3518,7 +3543,7 @@ function showModal(title, msg, onOk, okLabel) {
       const _isToeicMinggu = sectionId.startsWith('toeic__minggu_');
       const _isToeicMocktest = sectionId === 'toeic__mocktest';
       return `
-        ${(_isToeicMinggu || _isToeicMocktest) ? `<div style="margin-bottom:var(--s-12)"><button class="btn primary sm" id="btnBacaMateri">&#x1F4D6; ${_isToeicMocktest ? 'Baca Rangkuman Materi' : 'Baca Materi Belajar'}</button></div>` : ''}
+        ${(_isToeicMinggu || _isToeicMocktest) ? `<div style="margin-bottom:var(--s-12)"><button class="btn primary sm" id="btnBacaMateri">${icon('bookOpen')} ${_isToeicMocktest ? 'Baca Rangkuman Materi' : 'Baca Materi Belajar'}</button></div>` : ''}
         <section class="pkt-hero" style="--cat-color:${color}">
           <div class="pkt-hero-left">
             <div class="eyebrow accent">${escapeHtml(section.tagline || section.title)}</div>
@@ -3584,7 +3609,7 @@ function showModal(title, msg, onOk, okLabel) {
                     ? '<div class="pkt-score-row"><span class="pkt-score-num" style="color:' + scColor + '">' + p.bestScore + '%</span><span class="pkt-score-lbl">terbaik</span></div>'
                     : '<div></div>')}
               <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-                ${(!p.isSubBundle && p.status === 'done') ? `<button class="btn ghost sm" data-pkt-rev="${p.id}">&#x1F4D6; Pembahasan</button>` : ''}
+                ${(!p.isSubBundle && p.status === 'done') ? `<button class="btn ghost sm" data-pkt-rev="${p.id}">${icon('bookOpen')} Pembahasan</button>` : ''}
                 <button class="btn ${p.status==='not_started'?'ghost':'primary'} sm" data-pkt="${p.id}">${actionLabel(p)}</button>
               </div>
             </div>
@@ -3597,7 +3622,7 @@ function showModal(title, msg, onOk, okLabel) {
       return `
         <div class="side-card">
           <h4>
-            <span>&#x1F3C6; Leaderboard &middot; ${escapeHtml(section.title)}</span>
+            <span>${icon('trophy')} Leaderboard &middot; ${escapeHtml(section.title)}</span>
             <span style="color:var(--ink-3);font-family:var(--font-sans);text-transform:none;letter-spacing:0;font-weight:400">Top 5</span>
           </h4>
           <select id="pktLbSelect" aria-label="Filter leaderboard per ${escapeHtml(_kindKata)}" style="width:100%;margin-bottom:10px;background:var(--bg-2);color:var(--ink);border:1px solid var(--border-2);border-radius:8px;padding:7px 10px;font-size:var(--t-12);font-family:inherit;cursor:pointer">
@@ -3791,9 +3816,9 @@ function showModal(title, msg, onOk, okLabel) {
             </div>
             <div class="timer-lbl">Sisa</div>
             <div class="divider"></div>
-            <button class="rail-btn ${state.flagged[sectionId][q.number] ? 'active' : ''}" id="flagBtn" title="Tandai &middot; F">&#x2691;</button>
-            <button class="rail-btn" id="noteBtn" title="Catatan">&#x270E;</button>
-            <button class="rail-btn alert" id="pauseBtn" title="Tunda &amp; Keluar">&#x23F8;</button>
+            <button class="rail-btn ${state.flagged[sectionId][q.number] ? 'active' : ''}" id="flagBtn" title="Tandai &middot; F">${icon('flag')}</button>
+            <button class="rail-btn" id="noteBtn" title="Catatan">${icon('pencil')}</button>
+            <button class="rail-btn alert" id="pauseBtn" title="Tunda &amp; Keluar">${icon('pause')}</button>
           </aside>
 
           <section class="quiz-main">
@@ -3804,7 +3829,7 @@ function showModal(title, msg, onOk, okLabel) {
             <div class="quiz-progress"><i style="width:${progressPct}%"></i></div>
             ${passage ? `
             <details class="passage" open>
-              <summary>&#x1F4D6; ${passage.label}</summary>
+              <summary>${icon('bookOpen')} ${passage.label}</summary>
               <p>${escapeHtml(passage.text)}</p>
             </details>` : ''}
             <div class="quiz-prompt">${escapeHtml(promptLabel)}</div>
@@ -4043,7 +4068,7 @@ function showModal(title, msg, onOk, okLabel) {
               ${isNewBest && score > prevBest ? ' &#x1F389; Ini <strong style="color:var(--gold)">skor terbaik baru</strong> kamu!' : ''}
             </p>
             <div class="result-actions">
-              <button class="btn primary lg" id="resultRetry">Ulangi Paket Ini &#x21BB;</button>
+              <button class="btn primary lg" id="resultRetry">Ulangi Paket Ini ${icon('redo')}</button>
               <button class="btn ghost lg" id="resultHome">${packetParentValid ? 'Pilih Paket Lain' : 'Pilih Kategori Lain'}</button>
             </div>
           </div>
@@ -4117,7 +4142,7 @@ function showModal(title, msg, onOk, okLabel) {
       const ua = userAns[q.number];
       const correct = q.answer;
       const status = ua === undefined ? 'skip' : (ua === correct ? 'right' : 'wrong');
-      const statusLabel = status === 'right' ? '&#x2713; Benar' : (status === 'wrong' ? '&#x2717; Salah' : '&mdash; Tidak tercatat');
+      const statusLabel = status === 'right' ? (icon('check') + ' Benar') : (status === 'wrong' ? (icon('x') + ' Salah') : '&mdash; Tidak tercatat');
       const qText = q.question ? escapeHtml(q.question) : ('Soal ' + q.number);
       const qImage = q.image_b64 ? `<img src="data:image/jpeg;base64,${q.image_b64}" alt="Soal ${q.number}">` : '';
       const pData = getPassageData(sectionId, section.questions || []);
@@ -4144,7 +4169,7 @@ function showModal(title, msg, onOk, okLabel) {
         </div>
         ${passage ? `
         <details class="passage">
-          <summary>&#x1F4D6; ${passage.label}</summary>
+          <summary>${icon('bookOpen')} ${passage.label}</summary>
           <p>${escapeHtml(passage.text)}</p>
         </details>` : ''}
         <div class="qrev-question">${qText}${qImage}</div>
@@ -4308,7 +4333,7 @@ function showModal(title, msg, onOk, okLabel) {
     app.innerHTML = `
       <div class="materi-shell">
         <div class="materi-toc-backdrop" id="materiTocBackdrop"></div>
-        <button class="materi-toc-fab" id="materiTocFab" aria-label="Buka daftar isi">&#9776;</button>
+        <button class="materi-toc-fab" id="materiTocFab" aria-label="Buka daftar isi">${icon('menu')}</button>
         <aside class="materi-toc" id="materiToc">
           <button class="materi-toc-close" id="materiTocClose" aria-label="Tutup daftar isi">&times;</button>
           <div class="materi-back">
@@ -4319,7 +4344,7 @@ function showModal(title, msg, onOk, okLabel) {
         </aside>
         <main class="materi-content">
           <div class="materi-hero">
-            <div class="eyebrow">📖 ${escapeHtml(m.title)}</div>
+            <div class="eyebrow">${icon('bookOpen')} ${escapeHtml(m.title)}</div>
             <h1>${escapeHtml(m.subtitle)}</h1>
             <p>${escapeHtml(m.intro)}</p>
           </div>
@@ -4330,7 +4355,7 @@ function showModal(title, msg, onOk, okLabel) {
               ${quickCheckHtml(c.quickCheck, c.id)}
               <div style="margin-top:20px; text-align:center;">
                 <button class="btn ${prog[c.id] ? 'ghost' : 'primary'} sm" data-mark="${c.id}">
-                  ${prog[c.id] ? '✓ Sudah Dibaca' : 'Tandai Sudah Dibaca'}
+                  ${prog[c.id] ? icon('check') + ' Sudah Dibaca' : 'Tandai Sudah Dibaca'}
                 </button>
               </div>
             </section>
@@ -4969,8 +4994,8 @@ function showModal(title, msg, onOk, okLabel) {
     if (currentUser && isLeaderboardEnabled()) {
       const ss = state.submitStatus[sectionId];
       if (ss === 'pending') submitStatusHtml = '<div class="submit-status pending">⏳ Mengirim skor ke leaderboard...</div>';
-      else if (ss === 'success') submitStatusHtml = '<div class="submit-status success">✓ Skor masuk leaderboard</div>';
-      else if (ss === 'error') submitStatusHtml = '<div class="submit-status error">✗ Gagal kirim. Klik Coba Lagi di bawah.</div>';
+      else if (ss === 'success') submitStatusHtml = '<div class="submit-status success">' + icon('check') + ' Skor masuk leaderboard</div>';
+      else if (ss === 'error') submitStatusHtml = '<div class="submit-status error">' + icon('x') + ' Gagal kirim. Klik Coba Lagi di bawah.</div>';
     }
     
     const correct = score.correct;
@@ -5002,7 +5027,7 @@ function showModal(title, msg, onOk, okLabel) {
           ${retrySubmitBtn}
           <div class="nav-buttons" style="border-top:none; padding-top: 0; justify-content: center; margin-top: 24px">
             <button class="btn btn-secondary" id="backToHomeGG">← Home</button>
-            ${isLeaderboardEnabled() && currentUser ? '<button class="btn btn-secondary" id="viewLbGG">🏆 Leaderboard</button>' : ''}
+            ${isLeaderboardEnabled() && currentUser ? '<button class="btn btn-secondary" id="viewLbGG">' + icon('trophy') + ' Leaderboard</button>' : ''}
             <button class="btn" id="retryGG">Ulangi Tes</button>
           </div>
         </div>
@@ -5645,7 +5670,7 @@ function showModal(title, msg, onOk, okLabel) {
       ? (lbScopeSection.bundleIds || []).map(id => ({ id, title: (QUIZ_DATA[id] || {}).title || id }))
       : getOrderedSections();
     const tabs = [{ id: 'total', title: 'Total' }, ...sections];
-    const lbTitle = lbScopeSection ? '🏆 Leaderboard · ' + escapeHtml(lbScopeSection.title) : '🏆 Leaderboard';
+    const lbTitle = lbScopeSection ? icon('trophy') + ' Leaderboard · ' + escapeHtml(lbScopeSection.title) : icon('trophy') + ' Leaderboard';
     const lbBackLabel = lbScopeSection ? '← Kembali ke Menu' : '← Home';
 
     app.innerHTML = `
