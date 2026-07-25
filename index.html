@@ -1921,6 +1921,7 @@ textarea:focus-visible,
 .mat-list li{ padding:6px 0 6px 20px; position:relative; color:var(--ink-2); font-size:13px; }
 .mat-list li::before{ content:'▸'; position:absolute; left:4px; color:var(--accent); }
 .mat-list li strong{ color:var(--ink); font-family:'Menlo','Monaco',monospace; }
+.mat-list li strong.mat-em{ color:var(--accent); font-family:inherit; }
 .mat-irregular{ display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:8px; margin-top:12px; }
 .mat-irregular .irr{ background:var(--bg-2); border-radius:6px; padding:8px 10px; font-size:var(--t-12); }
 .mat-irregular .irr .v{ font-family:'Menlo','Monaco',monospace; color:var(--ink); }
@@ -1970,6 +1971,78 @@ textarea:focus-visible,
 .qc-feedback.right{ background:rgba(52,211,153,0.08); color:var(--ok); border-left:3px solid var(--ok); }
 .qc-feedback.wrong{ background:rgba(248,113,113,0.08); color:var(--danger); border-left:3px solid var(--danger); }
 .materi-back{ margin-bottom:var(--s-20); }
+
+/* ==========================================================
+   MODE BACA — sepia paper skin, scoped to .materi-shell only.
+   Same var-override technique as [data-theme], just localized,
+   so every .mat-* / .qc-* / .quickcheck rule (all token-based
+   already) re-themes for free. Contrast checked vs #FAF3E3:
+   ink 11.9:1 · ink-2 5.9:1 · ink-3 4.9:1 · accent 4.8:1 ·
+   ok 5.2:1 · danger 5.3:1 — all clear WCAG AA with margin.
+   ========================================================== */
+.materi-shell{ background:var(--bg); }
+body:has(.materi-shell.reading-mode){ background:#F4ECD8; }
+.materi-shell.reading-mode{
+  --bg: #F4ECD8;
+  --bg-2: #EEE1C3;
+  --surface: #FAF3E3;
+  --surface-2: #F1E6CC;
+  --border: rgba(58,46,31,0.14);
+  --border-2: rgba(58,46,31,0.22);
+  --ink: #3A2E1F;
+  --ink-2: #6B5B42;
+  --ink-3: #7A6849;
+  --accent: #A6551E;
+  --accent-deep: #8A4517;
+  --accent-soft: rgba(166,85,30,0.14);
+  --ok: #457038;
+  --warn: #9C6B12;
+  --danger: #B23B2E;
+  --shadow-1: rgba(58,46,31,0.10);
+  --shadow-2: rgba(58,46,31,0.12);
+  --shadow-3: rgba(58,46,31,0.14);
+  --shadow-4: rgba(58,46,31,0.16);
+  --shadow-5: rgba(58,46,31,0.20);
+  transition: background 0.25s ease;
+}
+.materi-shell.reading-mode .mat-trap{ background: rgba(178,59,46,0.09); }
+.materi-shell.reading-mode .mat-tip{ background: rgba(69,112,56,0.09); }
+.materi-shell.reading-mode .qc-opt.correct{ background: rgba(69,112,56,0.13); }
+.materi-shell.reading-mode .qc-opt.wrong{ background: rgba(178,59,46,0.13); }
+.materi-shell.reading-mode .qc-feedback.right{ background: rgba(69,112,56,0.09); }
+.materi-shell.reading-mode .qc-feedback.wrong{ background: rgba(178,59,46,0.09); }
+
+.materi-tools{
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+  gap:10px; margin-bottom:var(--s-20);
+  padding:8px 8px 8px 14px;
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+}
+.mt-readbtn{
+  display:flex; align-items:center; gap:7px;
+  height:34px; padding:0 14px; border-radius:8px;
+  font-size:13px; font-weight:600; color:var(--ink-2);
+  background:transparent; border:1px solid var(--border-2);
+  transition:background .15s, color .15s, border-color .15s;
+}
+.mt-readbtn:hover{ background:var(--surface-2); color:var(--ink); }
+.mt-readbtn[aria-pressed="true"]{ background:var(--accent-soft); color:var(--accent); border-color:transparent; }
+.mt-readbtn .icn{ font-size:15px; }
+.mt-fontsize{ display:flex; gap:2px; background:var(--bg-2); border-radius:8px; padding:2px; }
+.mt-fontsize button{
+  width:30px; height:30px; border-radius:6px; font-weight:700; color:var(--ink-2);
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s, color .15s;
+}
+.mt-fontsize button:hover:not(.active){ color:var(--ink); }
+.mt-fontsize button.active{ background:var(--surface); color:var(--accent); box-shadow:0 1px 0 var(--border) inset; }
+.mt-fontsize button:nth-child(1){ font-size:11px; }
+.mt-fontsize button:nth-child(2){ font-size:13px; }
+.mt-fontsize button:nth-child(3){ font-size:16px; }
+@media (max-width: 480px){
+  .materi-tools{ padding:8px; }
+  .mt-readbtn span{ display:none; }
+}
 
 
 /* per-question review (pembahasan) — panel mode */
@@ -4233,6 +4306,8 @@ function showModal(title, msg, onOk, okLabel) {
     if (!state.materiProgress) state.materiProgress = {};
     if (!state.materiProgress[key]) state.materiProgress[key] = {};
     const prog = state.materiProgress[key];
+    const _readingMode = localStorage.getItem('materi_reading_mode') === 'on';
+    const _fontScale = localStorage.getItem('materi_font_scale') || '1';
 
     // Emphasis-aware escaper: escape dulu (aman dari XSS), baru terjemahin markup
     // terbatas **tebal-aksen** dan ==sorot== jadi <strong>/<mark> yang berwarna.
@@ -4331,7 +4406,7 @@ function showModal(title, msg, onOk, okLabel) {
     const backTo = state.activeSection && (state.activeSection.startsWith('toeic__minggu_') || state.activeSection === 'toeic__mocktest') ? 'packet_select' : 'home';
 
     app.innerHTML = `
-      <div class="materi-shell">
+      <div class="materi-shell ${_readingMode ? 'reading-mode' : ''}">
         <div class="materi-toc-backdrop" id="materiTocBackdrop"></div>
         <button class="materi-toc-fab" id="materiTocFab" aria-label="Buka daftar isi">${icon('menu')}</button>
         <aside class="materi-toc" id="materiToc">
@@ -4342,11 +4417,21 @@ function showModal(title, msg, onOk, okLabel) {
           <h4>Daftar Isi</h4>
           ${tocHtml()}
         </aside>
-        <main class="materi-content">
+        <main class="materi-content" style="zoom:${_fontScale}">
           <div class="materi-hero">
             <div class="eyebrow">${icon('bookOpen')} ${escapeHtml(m.title)}</div>
             <h1>${escapeHtml(m.subtitle)}</h1>
             <p>${escapeHtml(m.intro)}</p>
+          </div>
+          <div class="materi-tools">
+            <button type="button" class="mt-readbtn" id="readingModeBtn" aria-pressed="${_readingMode ? 'true' : 'false'}">
+              ${icon('bookOpen')} <span id="readingModeLabel">${_readingMode ? 'Mode Baca: Aktif' : 'Mode Baca'}</span>
+            </button>
+            <div class="mt-fontsize" role="group" aria-label="Ukuran teks materi">
+              <button type="button" data-fscale="0.88" class="${_fontScale === '0.88' ? 'active' : ''}" aria-label="Teks kecil">A-</button>
+              <button type="button" data-fscale="1" class="${_fontScale === '1' ? 'active' : ''}" aria-label="Teks sedang">A</button>
+              <button type="button" data-fscale="1.18" class="${_fontScale === '1.18' ? 'active' : ''}" aria-label="Teks besar">A+</button>
+            </div>
           </div>
           ${m.chapters.map(c => `
             <section class="chapter" id="ch-${c.id}">
@@ -4368,6 +4453,27 @@ function showModal(title, msg, onOk, okLabel) {
     const back = document.getElementById('matBack');
     if (back) back.addEventListener('click', () => {
       state.view = backTo; saveState(); render();
+    });
+
+    // Wire mode baca (sepia reading skin) + ukuran teks (zoom stepper)
+    const readBtn = document.getElementById('readingModeBtn');
+    const shellEl = document.querySelector('.materi-shell');
+    if (readBtn && shellEl) readBtn.addEventListener('click', () => {
+      const on = shellEl.classList.toggle('reading-mode');
+      readBtn.setAttribute('aria-pressed', String(on));
+      const lbl = document.getElementById('readingModeLabel');
+      if (lbl) lbl.textContent = on ? 'Mode Baca: Aktif' : 'Mode Baca';
+      localStorage.setItem('materi_reading_mode', on ? 'on' : 'off');
+    });
+    const contentEl = document.querySelector('.materi-content');
+    document.querySelectorAll('[data-fscale]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const scale = btn.getAttribute('data-fscale');
+        if (contentEl) contentEl.style.zoom = scale;
+        document.querySelectorAll('[data-fscale]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        localStorage.setItem('materi_font_scale', scale);
+      });
     });
 
     // Wire mobile TOC drawer (FAB buka, backdrop/close/pilih-bab nutup)
