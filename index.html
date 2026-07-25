@@ -2013,14 +2013,13 @@ body:has(.materi-shell.reading-mode){ background:#F4ECD8; }
 .materi-shell.reading-mode .qc-feedback.wrong{ background: rgba(178,59,46,0.09); }
 
 .materi-tools{
-  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
-  gap:10px; margin-bottom:var(--s-20);
-  padding:8px 8px 8px 14px;
-  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  display:flex; flex-direction:column; gap:8px;
+  margin-top:16px; padding-top:16px;
+  border-top:1px solid var(--border);
 }
 .mt-readbtn{
-  display:flex; align-items:center; gap:7px;
-  height:34px; padding:0 14px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center; gap:7px;
+  width:100%; height:36px; padding:0 12px; border-radius:8px;
   font-size:13px; font-weight:600; color:var(--ink-2);
   background:transparent; border:1px solid var(--border-2);
   transition:background .15s, color .15s, border-color .15s;
@@ -2030,7 +2029,7 @@ body:has(.materi-shell.reading-mode){ background:#F4ECD8; }
 .mt-readbtn .icn{ font-size:15px; }
 .mt-fontsize{ display:flex; gap:2px; background:var(--bg-2); border-radius:8px; padding:2px; }
 .mt-fontsize button{
-  width:30px; height:30px; border-radius:6px; font-weight:700; color:var(--ink-2);
+  flex:1; height:30px; border-radius:6px; font-weight:700; color:var(--ink-2);
   display:flex; align-items:center; justify-content:center;
   transition:background .15s, color .15s;
 }
@@ -2039,10 +2038,6 @@ body:has(.materi-shell.reading-mode){ background:#F4ECD8; }
 .mt-fontsize button:nth-child(1){ font-size:11px; }
 .mt-fontsize button:nth-child(2){ font-size:13px; }
 .mt-fontsize button:nth-child(3){ font-size:16px; }
-@media (max-width: 480px){
-  .materi-tools{ padding:8px; }
-  .mt-readbtn span{ display:none; }
-}
 
 
 /* per-question review (pembahasan) — panel mode */
@@ -4416,14 +4411,8 @@ function showModal(title, msg, onOk, okLabel) {
           </div>
           <h4>Daftar Isi</h4>
           ${tocHtml()}
-        </aside>
-        <main class="materi-content" style="zoom:${_fontScale}">
-          <div class="materi-hero">
-            <div class="eyebrow">${icon('bookOpen')} ${escapeHtml(m.title)}</div>
-            <h1>${escapeHtml(m.subtitle)}</h1>
-            <p>${escapeHtml(m.intro)}</p>
-          </div>
           <div class="materi-tools">
+            <h4>Tampilan</h4>
             <button type="button" class="mt-readbtn" id="readingModeBtn" aria-pressed="${_readingMode ? 'true' : 'false'}">
               ${icon('bookOpen')} <span id="readingModeLabel">${_readingMode ? 'Mode Baca: Aktif' : 'Mode Baca'}</span>
             </button>
@@ -4432,6 +4421,13 @@ function showModal(title, msg, onOk, okLabel) {
               <button type="button" data-fscale="1" class="${_fontScale === '1' ? 'active' : ''}" aria-label="Teks sedang">A</button>
               <button type="button" data-fscale="1.18" class="${_fontScale === '1.18' ? 'active' : ''}" aria-label="Teks besar">A+</button>
             </div>
+          </div>
+        </aside>
+        <main class="materi-content" style="zoom:${_fontScale}">
+          <div class="materi-hero">
+            <div class="eyebrow">${icon('bookOpen')} ${escapeHtml(m.title)}</div>
+            <h1>${escapeHtml(m.subtitle)}</h1>
+            <p>${escapeHtml(m.intro)}</p>
           </div>
           ${m.chapters.map(c => `
             <section class="chapter" id="ch-${c.id}">
