@@ -1120,6 +1120,40 @@ textarea:focus-visible,
   background: linear-gradient(180deg, var(--accent), var(--accent-deep));
   color: #fff; border-color: transparent;
 }
+.opt.correct{ background: rgba(52,211,153,0.12); border-color: var(--ok); color: var(--ok); }
+.opt.correct .l{ background: var(--ok); color: #06121F; border-color: transparent; }
+.opt.wrong{ background: rgba(248,113,113,0.12); border-color: var(--danger); color: var(--danger); }
+.opt.wrong .l{ background: var(--danger); color: #06121F; border-color: transparent; }
+.opt:disabled{ cursor: default; }
+.opt:disabled:hover{ transform: none; }
+
+/* ==========================================================
+   LATIHAN SOAL PERNAH-SALAH
+   ========================================================== */
+.mp-shell{ max-width: 760px; margin: 0 auto; padding: var(--s-32) var(--s-32) var(--s-84); }
+.mp-top{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--s-12); margin-bottom: var(--s-20); }
+.mp-progress{ font-family: var(--font-mono); font-size: var(--t-12); color: var(--ink-3); letter-spacing: 0.06em; }
+.mp-card{ min-height: 0; }
+.mp-card .opt{ grid-template-columns: 44px 1fr; }
+.mp-feedback{ margin-top: var(--s-32); padding-top: var(--s-20); border-top: 1px solid var(--border); }
+.mp-fb-text{
+  background: var(--surface-2); border-left: 3px solid var(--border-2);
+  border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: var(--s-20);
+  font-size: var(--t-14); line-height: 1.6; color: var(--ink-2);
+}
+.mp-fb-text .icn{ margin-right: 4px; }
+.mp-fb-text.right{ border-left-color: var(--ok); }
+.mp-fb-text.wrong{ border-left-color: var(--danger); }
+.mp-done{
+  text-align: center; padding: var(--s-84) var(--s-32);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+}
+.mp-done .glyph{ font-size: 40px; color: var(--ok); margin-bottom: var(--s-20); }
+.mp-done h2{ margin: 0 0 var(--s-12); }
+.mp-done p{ color: var(--ink-2); max-width: 46ch; margin: 0 auto var(--s-32); }
+@media (max-width: 620px){
+  .mp-shell{ padding: var(--s-20) var(--s-20) var(--s-52); }
+}
 
 .quiz-actions{
   margin-top: auto;
@@ -2282,6 +2316,7 @@ body:has(.materi-shell.reading-mode){ background:#F4ECD8; }
       ganjilGenap: null,
       selisihAngka: null,
       selisihHuruf: null,
+      missedQuestions: {},
     };
   }
   
@@ -2307,6 +2342,8 @@ body:has(.materi-shell.reading-mode){ background:#F4ECD8; }
   try { applyTheme(); } catch (e) {}
   let timerInterval = null;
   let _sbClient = null;
+  let _practiceQueue = null;
+  let _practiceIdx = 0;
   let pausedSessionsCache = {};
   
   // ============ SUPABASE INIT ============
@@ -2698,6 +2735,40 @@ body:has(.materi-shell.reading-mode){ background:#F4ECD8; }
   }
   
   function getSection(id) { return QUIZ_DATA[id]; }
+
+  // Ratakan state.missedQuestions jadi antrean siap-latihan, lengkap dengan
+  // passage bacaan (kalau soalnya bagian dari grup wacana TOEIC) supaya
+  // gak muncul lepas konteks. Diacak biar gak mekanis per-section.
+  function getMissedQuestionsList() {
+    const list = [];
+    Object.keys(state.missedQuestions || {}).forEach(sectionId => {
+      const section = getSection(sectionId);
+      if (!section || !section.questions) return;
+      const missed = state.missedQuestions[sectionId];
+      const pData = getPassageData(sectionId, section.questions);
+      Object.keys(missed).forEach(numStr => {
+        const num = parseInt(numStr, 10);
+        const q = section.questions.find(qq => qq.number === num);
+        if (!q) return;
+        list.push({
+          sectionId,
+          sectionTitle: section.title,
+          question: q,
+          explanation: pData.cleanEx[num] !== undefined ? pData.cleanEx[num] : q.explanation,
+          passage: pData.map[num] || null,
+        });
+      });
+    });
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+  }
+
+  function countMissedQuestions() {
+    return Object.values(state.missedQuestions || {}).reduce((sum, s) => sum + Object.keys(s).length, 0);
+  }
 
   function hasBundles(section) { return !!(section && section.isBundled); }
 
@@ -3258,6 +3329,7 @@ function showModal(title, msg, onOk, okLabel) {
     else if (state.view === 'result') renderResult();
     else if (state.view === 'materi') renderMateri();
     else if (state.view === 'strength_map') renderStrengthMap();
+    else if (state.view === 'missed_practice') renderMissedPractice();
     else { state.view = 'home'; render(); }
   }
 
@@ -3447,6 +3519,7 @@ function showModal(title, msg, onOk, okLabel) {
             </button>` : ''}
             <button class="btn ghost" id="ctaLeaderboard">Lihat Leaderboard</button>
             <button class="btn ghost" id="ctaStrengthMap">Peta Kekuatan</button>
+            ${countMissedQuestions() > 0 ? `<button class="btn ghost" id="ctaMissedPractice">${icon('redo')} Soal Pernah Salah (${countMissedQuestions()})</button>` : ''}
           </div>
         </div>
         <div class="hero-ring">
@@ -3593,6 +3666,11 @@ function showModal(title, msg, onOk, okLabel) {
     if (ctaSm) ctaSm.addEventListener('click', () => {
       state.view = 'strength_map'; saveState(); render();
     });
+    const ctaMp = document.getElementById('ctaMissedPractice');
+    if (ctaMp) ctaMp.addEventListener('click', () => {
+      _practiceQueue = null;
+      state.view = 'missed_practice'; saveState(); render();
+    });
     document.querySelectorAll('[data-section]').forEach(el => {
       el.addEventListener('click', () => {
         const id = el.getAttribute('data-section');
@@ -3671,6 +3749,110 @@ function showModal(title, msg, onOk, okLabel) {
     const back = document.getElementById('smBack');
     if (back) back.addEventListener('click', () => {
       state.view = 'home'; saveState(); render();
+    });
+  }
+
+  // ---------- LATIHAN SOAL PERNAH-SALAH ----------
+  function renderMissedPractice() {
+    if (!_practiceQueue) {
+      _practiceQueue = getMissedQuestionsList();
+      _practiceIdx = 0;
+    }
+    // Buang entri yang udah keresolve dari jalur lain (mis. ngulang paket
+    // aslinya) sementara lagi di tengah sesi latihan.
+    _practiceQueue = _practiceQueue.filter(item => {
+      const m = state.missedQuestions[item.sectionId];
+      return m && m[item.question.number] !== undefined;
+    });
+    if (_practiceIdx >= _practiceQueue.length) _practiceIdx = 0;
+
+    const total = _practiceQueue.length;
+
+    if (total === 0) {
+      app.innerHTML = `
+        <div class="mp-shell">
+          <div class="mp-done">
+            <div class="glyph">${icon('check')}</div>
+            <h2 class="h-display">Semua Sudah Dikuasai!</h2>
+            <p>Gak ada lagi soal yang nyangkut di tumpukan. Lanjut latihan paket baru buat nambah lagi.</p>
+            <button class="btn primary lg" id="mpBackHome">Kembali ke Beranda</button>
+          </div>
+        </div>
+      `;
+      const backBtn = document.getElementById('mpBackHome');
+      if (backBtn) backBtn.addEventListener('click', () => {
+        _practiceQueue = null;
+        state.view = 'home'; saveState(); render();
+      });
+      return;
+    }
+
+    const item = _practiceQueue[_practiceIdx];
+    const q = item.question;
+    const optKeys = Object.keys(q.options);
+
+    app.innerHTML = `
+      <div class="mp-shell">
+        <div class="mp-top">
+          <button class="btn ghost sm" id="mpBack">&larr; Kembali ke Beranda</button>
+          <div class="mp-progress">${_practiceIdx + 1} / ${total} soal &middot; ${escapeHtml(item.sectionTitle)}</div>
+        </div>
+        <div class="quiz-main mp-card">
+          ${item.passage ? `
+          <details class="passage">
+            <summary>${icon('bookOpen')} ${escapeHtml(item.passage.label)}</summary>
+            <p>${escapeHtml(item.passage.text)}</p>
+          </details>` : ''}
+          <div class="quiz-question">${escapeHtml(q.question)}</div>
+          <div class="opts" id="mpOpts">
+            ${optKeys.map(k => `<button class="opt" data-opt="${k}"><span class="l">${k}</span><span>${escapeHtml(q.options[k])}</span></button>`).join('')}
+          </div>
+          <div class="mp-feedback hidden" id="mpFeedback">
+            <div class="mp-fb-text" id="mpFbText"></div>
+            <button class="btn primary" id="mpNext">Lanjut &rarr;</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const back = document.getElementById('mpBack');
+    if (back) back.addEventListener('click', () => {
+      _practiceQueue = null;
+      state.view = 'home'; saveState(); render();
+    });
+
+    const opts = Array.from(document.querySelectorAll('#mpOpts .opt'));
+    opts.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const chosen = btn.getAttribute('data-opt');
+        const isRight = chosen === q.answer;
+        opts.forEach(b => {
+          b.disabled = true;
+          const k = b.getAttribute('data-opt');
+          if (k === q.answer) b.classList.add('correct');
+          else if (k === chosen) b.classList.add('wrong');
+        });
+        if (isRight) {
+          const m = state.missedQuestions[item.sectionId];
+          if (m) {
+            delete m[q.number];
+            if (Object.keys(m).length === 0) delete state.missedQuestions[item.sectionId];
+          }
+          saveState();
+        }
+        const fb = document.getElementById('mpFeedback');
+        const fbText = document.getElementById('mpFbText');
+        fb.classList.remove('hidden');
+        fbText.classList.add(isRight ? 'right' : 'wrong');
+        fbText.innerHTML = (isRight ? icon('check') + ' Benar. ' : icon('x') + ' Kurang tepat. ')
+          + (q.explanation ? escapeHtml(item.explanation) : 'Cek lagi pembahasan paket aslinya ya.');
+        const nextBtn = document.getElementById('mpNext');
+        nextBtn.addEventListener('click', () => {
+          _practiceIdx += 1;
+          render();
+        });
+        nextBtn.focus();
+      });
     });
   }
 
@@ -4871,6 +5053,18 @@ function showModal(title, msg, onOk, okLabel) {
       if (userAns[q.number] === q.answer) correct++;
     });
     const score = Math.round((correct / section.questions.length) * 100);
+
+    // Tumpukan soal-pernah-salah: soal yang meleset/dilewati masuk tumpukan,
+    // yang baru aja dijawab benar keluar (baik lewat kuis asli maupun lewat
+    // sesi latihan ulang di renderMissedPractice).
+    if (!state.missedQuestions) state.missedQuestions = {};
+    const missedSet = state.missedQuestions[sectionId] || {};
+    section.questions.forEach(q => {
+      if (userAns[q.number] === q.answer) delete missedSet[q.number];
+      else missedSet[q.number] = { addedAt: Date.now() };
+    });
+    if (Object.keys(missedSet).length > 0) state.missedQuestions[sectionId] = missedSet;
+    else delete state.missedQuestions[sectionId];
     
     const startedTs = state.startedAt[sectionId] || Date.now();
     const duration = Math.round((Date.now() - startedTs) / 1000);
