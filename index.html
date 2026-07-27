@@ -1490,6 +1490,35 @@ textarea:focus-visible,
   margin-top: var(--s-20);
 }
 
+.pkt-materi-callout{
+  display: flex; align-items: center; gap: 14px;
+  width: 100%; text-align: left;
+  margin-top: var(--s-20);
+  padding: 14px 18px;
+  min-height: 44px;
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 14px;
+  transition: background 0.15s, transform 0.15s;
+}
+.pkt-materi-callout:hover{ background: color-mix(in srgb, var(--accent) 20%, var(--accent-soft)); transform: translateY(-1px); }
+.pkt-materi-callout:active{ transform: translateY(0); }
+.pmc-icon{
+  width: 36px; height: 36px; flex-shrink: 0;
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.pmc-text{ flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pmc-text strong{ color: var(--ink); font-size: var(--t-14); font-weight: 700; }
+.pmc-text span{ color: var(--ink-2); font-size: var(--t-12); line-height: 1.4; }
+.pmc-arrow{ color: var(--accent); font-size: 18px; flex-shrink: 0; }
+@media (max-width: 480px){
+  .pmc-text span{ display: none; }
+}
+
 .pkt-hero-h2{
   margin: 12px 0 12px;
   font-size: clamp(26px, 3.2vw, 44px);
@@ -3991,7 +4020,6 @@ function showModal(title, msg, onOk, okLabel) {
       const _isToeicMinggu = sectionId.startsWith('toeic__minggu_');
       const _isToeicMocktest = sectionId === 'toeic__mocktest';
       return `
-        ${(_isToeicMinggu || _isToeicMocktest) ? `<div style="margin-bottom:var(--s-12)"><button class="btn primary sm" id="btnBacaMateri">${icon('bookOpen')} ${_isToeicMocktest ? 'Baca Rangkuman Materi' : 'Baca Materi Belajar'}</button></div>` : ''}
         <section class="pkt-hero" style="--cat-color:${color}">
           <div class="pkt-hero-left">
             <div class="eyebrow accent">${escapeHtml(section.tagline || section.title)}</div>
@@ -4004,6 +4032,15 @@ function showModal(title, msg, onOk, okLabel) {
               dengan batas waktu <strong style="color:var(--ink)">${(packets[0]||{}).durMin || 30} menit</strong>.
               Kerjakan berurutan atau langsung pilih ${_kindKata} yang ingin dilatih ulang.
             </p>
+            ${(_isToeicMinggu || _isToeicMocktest) ? `
+            <button type="button" class="pkt-materi-callout" id="btnBacaMateri">
+              <span class="pmc-icon">${icon('bookOpen')}</span>
+              <span class="pmc-text">
+                <strong>${_isToeicMocktest ? 'Rangkuman materi tersedia' : 'Materi belajar tersedia'}</strong>
+                <span>${_isToeicMocktest ? 'Baca rangkuman penyegar sebelum mengerjakan mocktest.' : 'Baca dulu sebelum mulai latihan biar lebih siap.'}</span>
+              </span>
+              <span class="pmc-arrow">&rarr;</span>
+            </button>` : ''}
             <div class="pkt-filter" id="pktFilter">
               <button class="btn sm ${filter==='all'?'primary':'ghost'}" data-f="all">Semua (${packets.length})</button>
               <button class="btn sm ${filter==='todo'?'primary':'ghost'}" data-f="todo">Belum selesai</button>
