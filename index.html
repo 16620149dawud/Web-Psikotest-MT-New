@@ -24,7 +24,7 @@
 :root{
   /* Type scale (golden ratio ≈ 1.618). 12 · 14 · 16 · 20 · 26 · 42 · 68 · 110 */
   --t-12: 12px; --t-14: 14px; --t-16: 16px; --t-20: 20px;
-  --t-26: 26px; --t-42: 42px; --t-56: 56px; --t-68: 68px; --t-110: 110px;
+  --t-26: 26px; --t-32: 32px; --t-42: 42px; --t-56: 56px; --t-68: 68px; --t-110: 110px;
 
   /* Spacing scale (Fibonacci). 4 · 8 · 12 · 20 · 32 · 52 · 84 · 136 */
   --s-4: 4px; --s-8: 8px; --s-12: 12px; --s-20: 20px;
@@ -1057,13 +1057,24 @@ textarea:focus-visible,
 .quiz-question{
   font-family: var(--display-font);
   font-weight: 400;
-  font-size: clamp(28px, 3.4vw, var(--t-42));
-  line-height: 1.1;
+  font-size: clamp(24px, 2.6vw, var(--t-32));
+  line-height: 1.2;
   letter-spacing: -0.01em;
   margin: 0 0 var(--s-32);
   color: var(--ink);
   text-wrap: pretty;
 }
+.quiz-qfontsize{ display:flex; gap:2px; background:var(--bg-2); border-radius:8px; padding:2px; }
+.quiz-qfontsize button{
+  border: none; background: transparent; border-radius: 6px;
+  padding: 3px 9px; font-family: var(--font-sans); font-weight: 600;
+  color: var(--ink-3); cursor: pointer; text-transform: none; letter-spacing: 0;
+}
+.quiz-qfontsize button:hover:not(.active){ color: var(--ink); }
+.quiz-qfontsize button.active{ background: var(--surface); color: var(--accent); box-shadow: 0 1px 0 var(--border) inset; }
+.quiz-qfontsize button:nth-child(1){ font-size: 11px; }
+.quiz-qfontsize button:nth-child(2){ font-size: 13px; }
+.quiz-qfontsize button:nth-child(3){ font-size: 16px; }
 [data-mood="editorial"] .quiz-question em{ font-style: italic; color: var(--accent); }
 [data-mood="editorial"] .quiz-question{ font-weight: 400; }
 .quiz-question em{ color: var(--accent); font-style: italic; }
@@ -4250,6 +4261,7 @@ function showModal(title, msg, onOk, okLabel) {
       const remaining = state.remainingTime[sectionId];
       const ringPct = Math.round((remaining / totalSec) * 100);
       const ringC = remaining <= 60 ? 'var(--danger)' : remaining <= 300 ? 'var(--warn)' : 'var(--ok)';
+      const _qFontScale = localStorage.getItem('quiz_font_scale') || '1';
 
       // Teks bacaan (wacana) untuk soal pemahaman teks
       const passage = getPassageData(sectionId, questions).map[q.number];
@@ -4315,7 +4327,14 @@ function showModal(title, msg, onOk, okLabel) {
           <section class="quiz-main">
             <div class="quiz-meta">
               <span>${escapeHtml(section.title)} &middot; <strong>Soal ${idx + 1} / ${total}</strong></span>
-              <span class="sec-tag">${escapeHtml(section.type || 'Latihan').toUpperCase()}</span>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div class="quiz-qfontsize" role="group" aria-label="Ukuran teks soal">
+                  <button type="button" data-qfscale="0.85" class="${_qFontScale === '0.85' ? 'active' : ''}" aria-label="Teks soal kecil">A-</button>
+                  <button type="button" data-qfscale="1" class="${_qFontScale === '1' ? 'active' : ''}" aria-label="Teks soal sedang">A</button>
+                  <button type="button" data-qfscale="1.2" class="${_qFontScale === '1.2' ? 'active' : ''}" aria-label="Teks soal besar">A+</button>
+                </div>
+                <span class="sec-tag">${escapeHtml(section.type || 'Latihan').toUpperCase()}</span>
+              </div>
             </div>
             <div class="quiz-progress"><i style="width:${progressPct}%"></i></div>
             ${passage ? `
@@ -4325,7 +4344,7 @@ function showModal(title, msg, onOk, okLabel) {
             </details>` : ''}
             <div class="quiz-prompt">${escapeHtml(promptLabel)}</div>
             ${sequenceHtml}
-            <h1 class="quiz-question h-display">${questionHtml}</h1>
+            <h1 class="quiz-question h-display" style="zoom:${_qFontScale}">${questionHtml}</h1>
             <div class="opts" id="quizOptions" role="radiogroup" aria-label="Pilihan jawaban">${optsHtml}</div>
             <div class="quiz-actions">
               <div class="hint">
@@ -4373,6 +4392,12 @@ function showModal(title, msg, onOk, okLabel) {
         b.addEventListener('click', () => {
           state.currentIndex = parseInt(b.getAttribute('data-jump'), 10);
           saveState(); paint();
+        });
+      });
+      document.querySelectorAll('[data-qfscale]').forEach(b => {
+        b.addEventListener('click', () => {
+          localStorage.setItem('quiz_font_scale', b.getAttribute('data-qfscale'));
+          paint();
         });
       });
       const prev = document.getElementById('prevBtn');
