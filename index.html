@@ -2577,6 +2577,23 @@ body:has(.materi-shell.reading-mode){ background:#F4ECD8; }
     } catch (e) { console.error('deletePausedSession error:', e); }
   }
 
+  // ============ MATERI READ-PROGRESS SYNC ============
+  async function saveMateriProgressToSupabase(materiKey, chapterId, done) {
+    const sb = initSupabase();
+    if (!sb || !currentUser) return false;
+    try {
+      const { error } = await sb.from('materi_progress').upsert({
+        user_id: currentUser.id,
+        materi_key: materiKey,
+        chapter_id: chapterId,
+        done,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id,materi_key,chapter_id' });
+      if (error) { console.error('saveMateriProgressToSupabase error:', error); return false; }
+      return true;
+    } catch (e) { console.error('saveMateriProgressToSupabase exception:', e); return false; }
+  }
+
   async function deleteAllScores() {
     const sb = initSupabase();
     if (!sb || !currentUser) return false;
@@ -4891,7 +4908,7 @@ function showModal(title, msg, onOk, okLabel) {
     const key = state.activeMateri || 'toeic_w1';
     const m = MATERI_DATA[key];
     if (!m) { state.view = 'home'; render(); return; }
-    // Progress per bab (session-only, tidak disync ke supabase)
+    // Progress per bab -- lokal (localStorage) + disync ke supabase, lihat saveMateriProgressToSupabase
     if (!state.materiProgress) state.materiProgress = {};
     if (!state.materiProgress[key]) state.materiProgress[key] = {};
     const prog = state.materiProgress[key];
@@ -5124,6 +5141,7 @@ function showModal(title, msg, onOk, okLabel) {
         const cid = b.getAttribute('data-mark');
         prog[cid] = !prog[cid];
         saveState();
+        if (currentUser && isLeaderboardEnabled()) saveMateriProgressToSupabase(key, cid, prog[cid]);
         renderMateri();
       });
     });
@@ -6022,31 +6040,48 @@ function showModal(title, msg, onOk, okLabel) {
     const sb = initSupabase();
     if (!sb || !currentUser) return;
     try {
+      let synced = 0;
       const { data, error } = await sb.rpc('get_user_progress', { p_user_id: currentUser.id });
-      if (error || !data || data.length === 0) return;
-      data.forEach(row => {
-        const sid = row.section_id;
-        // Rekonstruksi state.scores dari Supabase
-        const history = Array.isArray(row.history) ? row.history.slice(-10) : [];
-        state.scores[sid] = {
-          score:     row.latest_score,
-          bestScore: row.best_score,
-          correct:   row.latest_correct,
-          total:     row.latest_total,
-          history
-        };
-        // Jawaban attempt terbaik dari Supabase -- biar pembahasan ikut pindah device
-        if (row.best_answers) {
-          if (!state.bestAnswers) state.bestAnswers = {};
-          if (!state.bestAnswers[sid]) state.bestAnswers[sid] = row.best_answers;
-        }
-        // Tandai section sebagai selesai berdasarkan data Supabase
-        if (!state.completedAt[sid]) {
-          state.completedAt[sid] = new Date(row.last_submitted_at).getTime();
-        }
-      });
-      saveState();
-      console.log(`[sync] Progress loaded: ${data.length} section(s) dari Supabase`);
+      if (!error && data && data.length > 0) {
+        data.forEach(row => {
+          const sid = row.section_id;
+          // Rekonstruksi state.scores dari Supabase
+          const history = Array.isArray(row.history) ? row.history.slice(-10) : [];
+          state.scores[sid] = {
+            score:     row.latest_score,
+            bestScore: row.best_score,
+            correct:   row.latest_correct,
+            total:     row.latest_total,
+            history
+          };
+          // Jawaban attempt terbaik dari Supabase -- biar pembahasan ikut pindah device
+          if (row.best_answers) {
+            if (!state.bestAnswers) state.bestAnswers = {};
+            if (!state.bestAnswers[sid]) state.bestAnswers[sid] = row.best_answers;
+          }
+          // Tandai section sebagai selesai berdasarkan data Supabase
+          if (!state.completedAt[sid]) {
+            state.completedAt[sid] = new Date(row.last_submitted_at).getTime();
+          }
+        });
+        synced += data.length;
+      }
+      // Progress baca materi -- gabung non-destruktif, tanda lokal yang sudah ada menang
+      const { data: materiRows } = await sb.from('materi_progress').select('materi_key, chapter_id, done').eq('user_id', currentUser.id);
+      if (materiRows && materiRows.length > 0) {
+        if (!state.materiProgress) state.materiProgress = {};
+        materiRows.forEach(row => {
+          if (!state.materiProgress[row.materi_key]) state.materiProgress[row.materi_key] = {};
+          if (state.materiProgress[row.materi_key][row.chapter_id] === undefined) {
+            state.materiProgress[row.materi_key][row.chapter_id] = row.done;
+          }
+        });
+        synced += materiRows.length;
+      }
+      if (synced > 0) {
+        saveState();
+        console.log(`[sync] Progress loaded: ${synced} item(s) dari Supabase`);
+      }
     } catch (e) {
       console.error('syncStateFromSupabase error:', e);
     }
