@@ -2066,7 +2066,6 @@ textarea:focus-visible,
 .mat-list{ margin:8px 0 12px; padding-left:0; list-style:none; }
 .mat-list li{ padding:6px 0 6px 20px; position:relative; color:var(--ink-2); font-size:13px; }
 .mat-list li::before{ content:'▸'; position:absolute; left:4px; color:var(--accent); }
-.mat-list li strong{ color:var(--ink); font-family:'Menlo','Monaco',monospace; }
 .mat-list li strong.mat-em{ color:var(--accent); font-family:inherit; }
 .mat-irregular{ display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:8px; margin-top:12px; }
 .mat-irregular .irr{ background:var(--bg-2); border-radius:6px; padding:8px 10px; font-size:var(--t-12); }
@@ -4952,7 +4951,7 @@ function showModal(title, msg, onOk, okLabel) {
           return `<div class="mat-concept">
             <h3>${escapeHtml(s.title)}</h3>
             ${s.desc ? `<div class="mat-when">${em(s.desc)}</div>` : ''}
-            <ul class="mat-list">${s.items.map(it => '<li><strong>' + escapeHtml(it) + '</strong></li>').join('')}</ul>
+            <ul class="mat-list">${s.items.map(it => '<li>' + em(it) + '</li>').join('')}</ul>
             ${s.examples ? `<div class="mat-examples">${s.examples.map(e => `<div class="mat-ex"><div class="en">${escapeHtml(e.en)}</div>${e.id ? '<div class="id">' + em(e.id) + '</div>' : ''}</div>`).join('')}</div>` : ''}
           </div>`;
         case 'recap':
@@ -4964,7 +4963,7 @@ function showModal(title, msg, onOk, okLabel) {
         case 'collocation':
           return `<div class="mat-concept">
             <h3>${escapeHtml(s.title)}</h3>
-            <div class="mat-collocations">${s.groups.map(g => `<div class="mat-colloc-group"><span class="prep">+ ${escapeHtml(g.prep)}</span>${g.items.map(i => '<div class="item">' + escapeHtml(i) + '</div>').join('')}</div>`).join('')}</div>
+            <div class="mat-collocations">${s.groups.map(g => `<div class="mat-colloc-group"><span class="prep">+ ${escapeHtml(g.prep)}</span>${g.items.map(i => '<div class="item">' + em(i) + '</div>').join('')}</div>`).join('')}</div>
             ${s.trap ? `<div class="mat-trap"><span class="mat-trap-text">${em(s.trap)}</span></div>` : ''}
             ${s.tip ? `<div class="mat-tip"><span class="mat-tip-text">${em(s.tip)}</span></div>` : ''}
           </div>`;
