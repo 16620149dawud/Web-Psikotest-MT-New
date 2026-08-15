@@ -6646,7 +6646,7 @@ function showModal(title, msg, onOk, okLabel) {
       `;
       document.getElementById('bpsBackIntro').addEventListener('click', () => {
         state.bpsPersamaanHuruf = null;
-        state.view = 'home'; saveState(); render();
+        state.activeSection = 'bps_pertamina'; state.view = 'bundle_select'; saveState(); render();
       });
       document.getElementById('bpsStartBtn').addEventListener('click', () => {
         b.phase = 'playing';
@@ -6938,7 +6938,7 @@ function showModal(title, msg, onOk, okLabel) {
       `;
       document.getElementById('bpsLogikaBackIntro').addEventListener('click', () => {
         state.bpsLogika = null;
-        state.view = 'home'; saveState(); render();
+        state.activeSection = 'bps_pertamina'; state.view = 'bundle_select'; saveState(); render();
       });
       document.getElementById('bpsLogikaStartBtn').addEventListener('click', () => {
         b.phase = 'playing';
@@ -7231,7 +7231,7 @@ function showModal(title, msg, onOk, okLabel) {
       `;
       document.getElementById('bpsPenalaran3BackIntro').addEventListener('click', () => {
         state.bpsPenalaranLanjutan = null;
-        state.view = 'home'; saveState(); render();
+        state.activeSection = 'bps_pertamina'; state.view = 'bundle_select'; saveState(); render();
       });
       document.getElementById('bpsPenalaran3StartBtn').addEventListener('click', () => {
         b.phase = 'playing';
@@ -7587,7 +7587,7 @@ function showModal(title, msg, onOk, okLabel) {
       `;
       document.getElementById('putarHurufBackIntro').addEventListener('click', () => {
         state.putarHuruf = null;
-        state.view = 'home'; saveState(); render();
+        state.activeSection = 'bps_pertamina'; state.view = 'bundle_select'; saveState(); render();
       });
       document.getElementById('putarHurufStartBtn').addEventListener('click', () => {
         b.phase = 'playing';
@@ -7854,7 +7854,7 @@ function showModal(title, msg, onOk, okLabel) {
       `;
       document.getElementById('bpsShBackIntro').addEventListener('click', () => {
         state.bpsSelisihHuruf = null;
-        state.view = 'home'; saveState(); render();
+        state.activeSection = 'bps_pertamina'; state.view = 'bundle_select'; saveState(); render();
       });
       document.getElementById('bpsShStartBtn').addEventListener('click', () => {
         b.phase = 'playing';
@@ -8131,7 +8131,7 @@ function showModal(title, msg, onOk, okLabel) {
       `;
       document.getElementById('bpsSaBackIntro').addEventListener('click', () => {
         state.bpsSelisihAngka = null;
-        state.view = 'home'; saveState(); render();
+        state.activeSection = 'bps_pertamina'; state.view = 'bundle_select'; saveState(); render();
       });
       document.getElementById('bpsSaStartBtn').addEventListener('click', () => {
         b.phase = 'playing';
@@ -8395,7 +8395,7 @@ function showModal(title, msg, onOk, okLabel) {
       `;
       document.getElementById('bpsFigBackIntro').addEventListener('click', () => {
         state.bpsPolaGambar = null;
-        state.view = 'home'; saveState(); render();
+        state.activeSection = 'bps_pertamina'; state.view = 'bundle_select'; saveState(); render();
       });
       document.getElementById('bpsFigStartBtn').addEventListener('click', () => {
         b.phase = 'playing';
@@ -8677,7 +8677,7 @@ function showModal(title, msg, onOk, okLabel) {
       `;
       document.getElementById('bpsCubeBackIntro').addEventListener('click', () => {
         state.bpsPola3d = null;
-        state.view = 'home'; saveState(); render();
+        state.activeSection = 'bps_pertamina'; state.view = 'bundle_select'; saveState(); render();
       });
       document.getElementById('bpsCubeStartBtn').addEventListener('click', () => {
         b.phase = 'playing';
