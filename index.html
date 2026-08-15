@@ -6629,6 +6629,7 @@ function showModal(title, msg, onOk, okLabel) {
           <div class="bps-shell">
             <div class="sh-header">
               <div>
+                <button type="button" class="btn-ghost btn-sm" id="bpsExitBtn" style="padding:4px 8px;margin-bottom:6px">&larr; Menu Utama</button>
                 <div style="font-size:18px;font-weight:700">Persamaan Huruf</div>
                 <div style="font-size:var(--t-12);color:var(--text-muted);margin-top:2px">Soal ${b.currentIndex + 1} dari ${b.questions.length}</div>
               </div>
@@ -6671,6 +6672,16 @@ function showModal(title, msg, onOk, okLabel) {
       if (bb.currentIndex >= bb.questions.length) bb.phase = 'ready_submit';
       saveState();
       render();
+    });
+    document.getElementById('bpsExitBtn').addEventListener('click', () => {
+      showModal('Keluar dari Tes?', 'Progres yang sudah kamu jawab akan otomatis disubmit sebagai hasil akhir. Yakin mau keluar ke menu utama?', () => {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        saveBpsPersamaanHurufScore();
+        state.view = 'home';
+        state.activeSection = null;
+        saveState();
+        render();
+      }, 'Ya, Submit & Keluar');
     });
     startBpsPersamaanHurufTimer();
   }
@@ -6911,6 +6922,7 @@ function showModal(title, msg, onOk, okLabel) {
           <div class="bps-shell">
             <div class="sh-header">
               <div>
+                <button type="button" class="btn-ghost btn-sm" id="bpsLogikaExitBtn" style="padding:4px 8px;margin-bottom:6px">&larr; Menu Utama</button>
                 <div style="font-size:18px;font-weight:700">Logika Penalaran</div>
                 <div style="font-size:var(--t-12);color:var(--text-muted);margin-top:2px">Soal ${b.currentIndex + 1} dari ${b.questions.length}</div>
               </div>
@@ -6948,6 +6960,16 @@ function showModal(title, msg, onOk, okLabel) {
       if (bb.currentIndex >= bb.questions.length) bb.phase = 'ready_submit';
       saveState();
       render();
+    });
+    document.getElementById('bpsLogikaExitBtn').addEventListener('click', () => {
+      showModal('Keluar dari Tes?', 'Progres yang sudah kamu jawab akan otomatis disubmit sebagai hasil akhir. Yakin mau keluar ke menu utama?', () => {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        saveBpsLogikaScore();
+        state.view = 'home';
+        state.activeSection = null;
+        saveState();
+        render();
+      }, 'Ya, Submit & Keluar');
     });
     startBpsLogikaTimer();
   }
@@ -7193,6 +7215,7 @@ function showModal(title, msg, onOk, okLabel) {
           <div class="bps-shell">
             <div class="sh-header">
               <div>
+                <button type="button" class="btn-ghost btn-sm" id="bpsPenalaran3ExitBtn" style="padding:4px 8px;margin-bottom:6px">&larr; Menu Utama</button>
                 <div style="font-size:18px;font-weight:700">Penalaran Perbandingan Lanjutan</div>
                 <div style="font-size:var(--t-12);color:var(--text-muted);margin-top:2px">Soal ${b.currentIndex + 1} dari ${b.questions.length}</div>
               </div>
@@ -7230,6 +7253,16 @@ function showModal(title, msg, onOk, okLabel) {
       if (bb.currentIndex >= bb.questions.length) bb.phase = 'ready_submit';
       saveState();
       render();
+    });
+    document.getElementById('bpsPenalaran3ExitBtn').addEventListener('click', () => {
+      showModal('Keluar dari Tes?', 'Progres yang sudah kamu jawab akan otomatis disubmit sebagai hasil akhir. Yakin mau keluar ke menu utama?', () => {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        saveBpsPenalaranLanjutanScore();
+        state.view = 'home';
+        state.activeSection = null;
+        saveState();
+        render();
+      }, 'Ya, Submit & Keluar');
     });
     startBpsPenalaranLanjutanTimer();
   }
@@ -7537,6 +7570,7 @@ function showModal(title, msg, onOk, okLabel) {
           <div class="bps-shell">
             <div class="sh-header">
               <div>
+                <button type="button" class="btn-ghost btn-sm" id="putarHurufExitBtn" style="padding:4px 8px;margin-bottom:6px">&larr; Menu Utama</button>
                 <div style="font-size:18px;font-weight:700">Putar Huruf</div>
                 <div style="font-size:var(--t-12);color:var(--text-muted);margin-top:2px">Soal ${b.currentIndex + 1} dari ${b.questions.length}</div>
               </div>
@@ -7575,6 +7609,16 @@ function showModal(title, msg, onOk, okLabel) {
       if (bb.currentIndex >= bb.questions.length) bb.phase = 'ready_submit';
       saveState();
       render();
+    });
+    document.getElementById('putarHurufExitBtn').addEventListener('click', () => {
+      showModal('Keluar dari Tes?', 'Progres yang sudah kamu jawab akan otomatis disubmit sebagai hasil akhir. Yakin mau keluar ke menu utama?', () => {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        savePutarHurufScore();
+        state.view = 'home';
+        state.activeSection = null;
+        saveState();
+        render();
+      }, 'Ya, Submit & Keluar');
     });
     startPutarHurufTimer();
   }
