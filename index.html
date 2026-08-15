@@ -1967,6 +1967,8 @@ textarea:focus-visible,
 .bpssh-answer-btn{ width:100%; padding:16px 8px; font-size:17px; font-weight:700; border:2px solid var(--border-2); border-radius:10px; background:var(--surface-2); color:var(--ink, inherit); cursor:pointer; transition:transform .12s,border-color .12s,background .12s,color .12s; }
 .bpssh-answer-btn:hover:not(:disabled){ border-color:var(--primary); background:var(--primary-light); color:var(--primary); }
 .bpssh-answer-btn.selected{ background:var(--primary); border-color:var(--primary); color:#fff; }
+.bpssh-answer-row{ display:flex; flex-direction:row; gap:16px; margin:20px 0; }
+.bpssh-answer-row .bpssh-answer-btn{ flex:1 1 0; }
 .bpssa-list{ display:flex; flex-direction:column; align-items:center; gap:14px; margin:28px 0; }
 .bpssa-row{ display:flex; align-items:baseline; gap:18px; }
 .bpssa-val{ font-size:44px; font-weight:800; font-family:'Calibri Light','Calibri',var(--font-sans); color:var(--ink, inherit); line-height:1; }
@@ -7804,8 +7806,8 @@ function showModal(title, msg, onOk, okLabel) {
               <div class="bpssh-grid">
                 ${ex.letters.map(l => `<div class="bpssh-box">${l}</div>`).join('')}
               </div>
-              <div class="bpssh-grid">
-                ${ex.letters.map(l => l === ex.middle ? '<div></div>' : `<div class="bpssh-answer-btn${l === ex.correct ? ' bps-example-correct' : ''}" style="cursor:default">${l}</div>`).join('')}
+              <div class="bpssh-answer-row">
+                ${ex.letters.filter(l => l !== ex.middle).map(l => `<div class="bpssh-answer-btn${l === ex.correct ? ' bps-example-correct' : ''}" style="cursor:default">${l}</div>`).join('')}
               </div>
               <p class="bps-instr" style="margin-top:12px">Jika diurutkan dengan benar, maka huruf B ada di urutan pertama, kemudian E di tengah, dan I merupakan huruf dengan urutan terakhir.</p>
               <p class="bps-instr">Dari urutan tersebut, huruf B memiliki selisih yang lebih sedikit dengan huruf E, yaitu 2 huruf (huruf C dan D), sedangkan antara huruf E dan huruf I terdapat 3 huruf (huruf F, G, dan H). Maka huruf yang memiliki selisih terdekat dengan huruf yang ada di tengah (huruf E) adalah huruf yang ada di sebelah kiri (huruf B).</p>
@@ -7851,8 +7853,8 @@ function showModal(title, msg, onOk, okLabel) {
             <div class="bpssh-grid">
               ${q.letters.map(l => `<div class="bpssh-box">${l}</div>`).join('')}
             </div>
-            <div class="bpssh-grid" id="bpsShOptions">
-              ${q.letters.map(l => l === q.middle ? '<div></div>' : `<button type="button" class="bpssh-answer-btn" data-letter="${l}">${l}</button>`).join('')}
+            <div class="bpssh-answer-row" id="bpsShOptions">
+              ${q.letters.filter(l => l !== q.middle).map(l => `<button type="button" class="bpssh-answer-btn" data-letter="${l}">${l}</button>`).join('')}
             </div>
             <button type="button" class="bps-next-btn" id="bpsShNextBtn">Pertanyaan Selanjutnya &rarr;</button>
           </div>
