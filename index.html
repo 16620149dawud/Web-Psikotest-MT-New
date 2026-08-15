@@ -6677,8 +6677,8 @@ function showModal(title, msg, onOk, okLabel) {
       showModal('Keluar dari Tes?', 'Progres yang sudah kamu jawab akan otomatis disubmit sebagai hasil akhir. Yakin mau keluar ke menu utama?', () => {
         if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
         saveBpsPersamaanHurufScore();
-        state.view = 'home';
-        state.activeSection = null;
+        state.activeSection = 'bps_pertamina';
+        state.view = 'bundle_select';
         saveState();
         render();
       }, 'Ya, Submit & Keluar');
@@ -6965,8 +6965,8 @@ function showModal(title, msg, onOk, okLabel) {
       showModal('Keluar dari Tes?', 'Progres yang sudah kamu jawab akan otomatis disubmit sebagai hasil akhir. Yakin mau keluar ke menu utama?', () => {
         if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
         saveBpsLogikaScore();
-        state.view = 'home';
-        state.activeSection = null;
+        state.activeSection = 'bps_pertamina';
+        state.view = 'bundle_select';
         saveState();
         render();
       }, 'Ya, Submit & Keluar');
@@ -7258,8 +7258,8 @@ function showModal(title, msg, onOk, okLabel) {
       showModal('Keluar dari Tes?', 'Progres yang sudah kamu jawab akan otomatis disubmit sebagai hasil akhir. Yakin mau keluar ke menu utama?', () => {
         if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
         saveBpsPenalaranLanjutanScore();
-        state.view = 'home';
-        state.activeSection = null;
+        state.activeSection = 'bps_pertamina';
+        state.view = 'bundle_select';
         saveState();
         render();
       }, 'Ya, Submit & Keluar');
@@ -7614,8 +7614,8 @@ function showModal(title, msg, onOk, okLabel) {
       showModal('Keluar dari Tes?', 'Progres yang sudah kamu jawab akan otomatis disubmit sebagai hasil akhir. Yakin mau keluar ke menu utama?', () => {
         if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
         savePutarHurufScore();
-        state.view = 'home';
-        state.activeSection = null;
+        state.activeSection = 'bps_pertamina';
+        state.view = 'bundle_select';
         saveState();
         render();
       }, 'Ya, Submit & Keluar');
